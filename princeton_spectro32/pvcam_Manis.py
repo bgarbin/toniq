@@ -14,7 +14,7 @@ class _CameraClass:
         self.isOpen = False
         self.open()
         self.initCam()
-        self.exposure = 0.001
+        self.exposure = 0.0001
         self.clearROI()
         self.binning = [1, 1]
         self.mode = 0
@@ -40,10 +40,21 @@ class _CameraClass:
         #self.setParam(PARAM_GAIN_INDEX, 3)
         #self.setParam(PARAM_PMODE, PMODE_NORMAL)  ## PMODE_FT ?
         self.setParam(PARAM_SHTR_OPEN_MODE, OPEN_PRE_SEQUENCE)
+		#self.setParam(PARAM_EXP_RES, EXP_RES_ONE_MILLISEC)  (bruno)
         #self.setParam(PARAM_CLEAR_MODE, CLEAR_PRE_EXPOSURE)
         self.setParam(PARAM_CLEAR_CYCLES, 2)
         pass
-        
+
+		
+    def getTemperature(self):
+        # Doesn't work for whatever reason 
+        self.paramAvailable(PARAM_TEMP_SETPOINT)       # works
+        self._assertParamReadable(PARAM_TEMP_SETPOINT) # works
+        self.getParam(PARAM_TEMP_SETPOINT)             # ...
+
+    def getExposure(self):
+        return self.getParam(PARAM_EXP_RES)             # ...
+
     def listTransferModes(self):
         return self.getEnumList(PARAM_PMODE)[0]
         
@@ -61,7 +72,7 @@ class _CameraClass:
 
     def getShutterMode(self):
         return self.getEnum(PARAM_SHTR_OPEN_MODE)
-        
+
     def getEnum(self, param):
         l = self.getEnumList(param)
         v = self.getParam(param)
@@ -70,13 +81,13 @@ class _CameraClass:
     def setEnum(self, param, val):
         l = self.getEnumList(param)
         if val >= len(l[0]):
-            raise Exception("Invalid value for %s" % paramName(param))
+            raise Exception("Invalid value for %s" % self.paramName(param))
         self.setParam(param, l[1][val])
         
 
     def close(self):
         if self.isOpen:
-            self.pvcam.pl_exp_abort(CCS_HALT_CLOSE_SHUTTER)
+            #self.pvcam.pl_exp_abort(CCS_HALT_CLOSE_SHUTTER)
             self.pvcam.pl_cam_close(self.hCam)
             self.isOpen = False
 
@@ -110,6 +121,8 @@ class _CameraClass:
         return Region(region, binning)
 
     def acq(self, frames=None, exposure=None, region=None, binning=None):
+		# (bruno) may be missing a cleanup => pl_exp_finish_seq(self.hCam, self.buf.ctypes.data, int16 hbuf) (page 72)
+		
         if self.mode != 0:
             raise Exception("Camera is not ready to start new acquisition")
         if exposure is None: exposure = self.exposure
@@ -119,7 +132,7 @@ class _CameraClass:
         
         ssize = c_uint()
         rgn = self.getRegion(region, binning)
-        print rgn.size()
+        print(rgn.size())
         if frames is None:
             self.buf = numpy.empty((rgn.size()[1], rgn.size()[0]), dtype=numpy.uint16)
             frames = 1
@@ -137,7 +150,9 @@ class _CameraClass:
             if status.value in [READOUT_COMPLETE, READOUT_NOT_ACTIVE]:
                 break
             elif status.value == READOUT_FAILED:
-                raise Exception("Readout failed: " + self.pvcam.error())
+                pass
+				# Note once out of two times the READOUT fails
+                #raise Exception("Readout failed: " + self.pvcam.error())
             time.sleep(exposure * 0.5)
         self.mode = 0
         return self.buf
@@ -148,20 +163,21 @@ class _CameraClass:
         #if exp < minexp:
         #    raise Exception("Exposure time is less than effective minimum (%f < %f)" % (exp, minexp))
         return int(exp * 1000.)
-        
 
     def start(self, frames=None, exposure=None, region=None, binning=None):
+        # (bruno) WARNING: memory is not locked...
         if self.mode != 0:
             raise Exception("Camera is not ready to start new acquisition")
         assert(frames > 0)
+
         self._assertParamAvailable(PARAM_CIRC_BUFFER)
         if exposure is None: exposure = self.exposure
         if region is None: region = self.region
         if binning is None: binning = self.binning
         if frames is None: frames = self.ringSize
-        
+
         exp = self._parseExposure(exposure)
-        
+
         ssize = c_uint()
         rgn = Region(region, binning)
         rSize = rgn.size()
@@ -173,7 +189,21 @@ class _CameraClass:
             raise Exception('Created wrong size buffer! %d != %d' %(len(self.buf.data), ssize.value))
         self.pvcam.pl_exp_start_cont(self.hCam, self.buf.ctypes.data, ssize)   ## Warning: this memory is not locked, may cause errors if the system starts swapping.
         self.mode = 2
-
+        
+        print(self.buf.squeeze(),type(self.buf.squeeze()[0]))
+		## added (bruno): make sure readout is finished before returning
+        while True:
+            status = c_short()
+            bcount = c_uint()
+            self.pvcam.pl_exp_check_status(self.hCam, byref(status), byref(bcount))
+            if status.value in [READOUT_COMPLETE, READOUT_NOT_ACTIVE]:
+                break
+            elif status.value == READOUT_FAILED:
+                pass
+				# Note once out of two times the READOUT fails
+                #raise Exception("Readout failed: " + self.pvcam.error())
+            time.sleep(exposure*0.5)
+			
         return self.buf
 
     def lastFrame(self):
@@ -188,7 +218,7 @@ class _CameraClass:
                 raise
         index = (frame.value - self.buf.ctypes.data) / self.frameSize
         if index < 0 or index > (self.buf.shape[0]-1):
-            print "Warning: lastFrame got %d!" % index
+            print("Warning: lastFrame got %d!" % index)
             return None
         return index
 
@@ -216,13 +246,13 @@ class _CameraClass:
             if value < minval:
                 if autoClip:
                     value = minval
-                    print "Warning: Clipped value to %s" % str(value)
+                    print("Warning: Clipped value to %s" % str(value))
                 else:
                     raise Exception("Minimum value for parameter is %s (requested %s)" % (str(minval), str(value)))
             if value > maxval:
                 if autoClip:
                     value = maxval
-                    print "Warning: Clipped value to %s" % str(value)
+                    print("Warning: Clipped value to %s" % str(value))
                 else:
                     raise Exception("Maximum value for parameter is %s (requested %s)" % (str(maxval), str(value)))
             if stepval != 0.0:   ## No idea what to do if stepval == 0
@@ -230,7 +260,7 @@ class _CameraClass:
                 if (inc%1.0) != 0.0:
                     if autoQuantize:
                         value = minval + round(inc) * stepval
-                        print "Warning: Quantized value to %s" % str(value)
+                        print("Warning: Quantized value to %s" % str(value))
                     else:
                         raise Exception("Value for parameter must be in increments of %s (requested %s)" % (str(stepval), str(value)))
         #elif typ == TYPE_ENUM:
@@ -243,7 +273,7 @@ class _CameraClass:
                 raise Exception("Enum value %d is out of range for parameter" % value)
             
         ## Set value
-        val = mkCObj(typ, value)
+        val = self.mkCObj(typ, value)
         self.pvcam.pl_set_param(self.hCam, param, byref(val))
 
     def getParamRange(self, param):
@@ -319,10 +349,46 @@ class _CameraClass:
                 typ = typs[attr]
             else:
                 typ = self.getParamType(param)
-        val = mkCObj(typ)
+        val = self.mkCObj(typ)
         self.pvcam.pl_get_param(self.hCam, param, attr, byref(val))
         return val.value
+		
+    def mkCObj(self, typ, value=None):
+        typs = {
+            TYPE_INT8: c_byte, 
+            TYPE_UNS8: c_ubyte,
+            TYPE_INT16: c_short,
+            TYPE_UNS16: c_ushort,
+            TYPE_INT32: c_int,
+            TYPE_UNS32: c_uint,
+            TYPE_FLT64: c_double,
+            TYPE_ENUM: c_ushort,
+            TYPE_BOOLEAN: c_ushort,
+            TYPE_CHAR_PTR: c_char_p, ## This is likely to cause bugs--we need to use create_string_buffer
+            TYPE_VOID_PTR: c_void_p,
+            TYPE_VOID_PTR_PTR: c_void_p
+        }
+        if not typs.has_key(typ):
+            raise Exception("Unknown type %d" % typ)
+        if value is None:
+            return typs[typ]()
+        else:
+            return typs[typ](value)
 
+    def paramName(self, param):
+        for p in dir(__main__):
+            if p[:6] == 'PARAM_' and getattr(__main__, p) == param:
+                return p
+
+    def attrName(self, attr):
+        for p in dir(__main__):
+            if p[:5] == 'ATTR_' and getattr(__main__, p) == attr:
+                return p
+
+    def typeName(self, typ):
+        for p in dir(__main__):
+            if p[:5] == 'TYPE_' and getattr(__main__, p) == typ:
+                return p
     
 class _PVCamClass:
     def __init__(self):
@@ -362,7 +428,7 @@ class _PVCamClass:
 
     def call(self, func, *args):
         try:
-            #print "%s(%s)" % (func, str(args))
+            #print("%s(%s)" % (func, str(args)))
             fn = getattr(self.pvcam, func)
         except:
             raise Exception("No PVCam function named " + func)
@@ -413,106 +479,70 @@ class Region(Structure):
     def size(self):
         return ((self.s2-self.s1+1) / self.sbin, (self.p2-self.p1+1) / self.pbin)
 
-def init():
-    createConstants()
-    global PVCam
-    PVCam = _PVCamClass()
+class Init_PVCam():
+	def __init__(self):
+		self.createConstants()
+		self.PVCam = _PVCamClass()
 
-def mkCObj(typ, value=None):
-    typs = {
-        TYPE_INT8: c_byte, 
-        TYPE_UNS8: c_ubyte,
-        TYPE_INT16: c_short,
-        TYPE_UNS16: c_ushort,
-        TYPE_INT32: c_int,
-        TYPE_UNS32: c_uint,
-        TYPE_FLT64: c_double,
-        TYPE_ENUM: c_ushort,
-        TYPE_BOOLEAN: c_ushort,
-        TYPE_CHAR_PTR: c_char_p, ## This is likely to cause bugs--we need to use create_string_buffer
-        TYPE_VOID_PTR: c_void_p,
-        TYPE_VOID_PTR_PTR: c_void_p
-    }
-    if not typs.has_key(typ):
-        raise Exception("Unknown type %d" % typ)
-    if value is None:
-        return typs[typ]()
-    else:
-        return typs[typ](value)
+	def decomment(self, string):
+		return re.sub(r'/\*.*\*/', '', re.sub(r'//.*', '', string))
 
-def paramName(param):
-    for p in dir(__main__):
-        if p[:6] == 'PARAM_' and getattr(__main__, p) == param:
-            return p
+	def createConstants(self):
+		global pvcam_header_files
+		names = []
+		for hfile in pvcam_header_files:
+			fh = open(hfile)
+			data = fh.readlines()
+			fh.close()
+			global header_vars
+			header_vars = []
+			
+			for i in range(0, len(data)):
+				l = self.decomment(data[i])
+				
+				# Search for #define, set variable
+				m = re.match(r'\s*\#define\s+(\S+)\s+(.*)', l)
+				if m is not None:
+					var = m.groups()[0]
+					expr = m.groups()[1]
+					if len(var) > 0 and len(expr) > 0:
+						try:
+							setattr(sys.modules[__name__], var, eval(expr))
+							names.append(var)
+							header_vars.append(var)
+						except:
+							pass
+							#print("Error setting variable '%s' = '%s'" % (var, expr))
 
-def attrName(attr):
-    for p in dir(__main__):
-        if p[:5] == 'ATTR_' and getattr(__main__, p) == attr:
-            return p
+				# search for enum
+				if re.match(r'\s*enum\s+', l):
+					# concatenate lines until the end of the enum
+					ind = i
+					enum = ''
+					while True:
+						enum += self.decomment(data[ind])
+						if re.search('}', data[ind]):
+							break
+						ind += 1
 
-def typeName(typ):
-    for p in dir(__main__):
-        if p[:5] == 'TYPE_' and getattr(__main__, p) == typ:
-            return p
+					# Pull out variables
+					enum = re.sub('(\n|\s)', '', enum)
+					enum = re.sub(r'.*{', '', enum)
+					enum = re.sub(r'}.*', '', enum)
+					ind = 0
+					for var in enum.split(','):
+						setattr(sys.modules[__name__], var, ind)
+						names.append(var)
+						ind += 1
 
-def decomment(string):
-    return re.sub(r'/\*.*\*/', '', re.sub(r'//.*', '', string))
-
-def createConstants():
-    global pvcam_header_files
-    names = []
-    for hfile in pvcam_header_files:
-        fh = open(hfile)
-        data = fh.readlines()
-        fh.close()
-        global header_vars
-        header_vars = []
-        
-        for i in range(0, len(data)):
-            l = decomment(data[i])
-            
-            # Search for #define, set variable
-            m = re.match(r'\s*\#define\s+(\S+)\s+(.*)', l)
-            if m is not None:
-                var = m.groups()[0]
-                expr = m.groups()[1]
-                if len(var) > 0 and len(expr) > 0:
-                    try:
-                        setattr(sys.modules[__name__], var, eval(expr))
-                        names.append(var)
-                        header_vars.append(var)
-                    except:
-                        pass
-                        #print "Error setting variable '%s' = '%s'" % (var, expr)
-
-            # search for enum
-            if re.match(r'\s*enum\s+', l):
-                # concatenate lines until the end of the enum
-                ind = i
-                enum = ''
-                while True:
-                    enum += decomment(data[ind])
-                    if re.search('}', data[ind]):
-                        break
-                    ind += 1
-
-                # Pull out variables
-                enum = re.sub('(\n|\s)', '', enum)
-                enum = re.sub(r'.*{', '', enum)
-                enum = re.sub(r'}.*', '', enum)
-                ind = 0
-                for var in enum.split(','):
-                    setattr(sys.modules[__name__], var, ind)
-                    names.append(var)
-                    ind += 1
-
-    vals = {}
-    for n in names:
-        vals[n] = getattr(sys.modules[__name__], n)
-    return vals
+		vals = {}
+		for n in names:
+			vals[n] = getattr(sys.modules[__name__], n)
+		return vals
 
 
-init()
-c = PVCam.getCamera('Camera1')
-d=c.start(1)
-numpy.savetxt('test_winspec.txt',d.squeeze())
+#init()
+#PVCam.listCameras()
+#c = PVCam.getCamera('Camera1')
+#d=c.start(1)
+#numpy.savetxt('test_winspec.txt',d.squeeze())
