@@ -20,7 +20,7 @@ class Winspec :
         self.folderPath = os.path.dirname(os.path.realpath(__file__))
         self.fileName = 'spectrum_temp.txt'
         
-        self.windowBasename='WinSpec32'
+        self.windowBasename='WinSpec/32'
         
         self.nbPixelsBorder=5 # à chaque extrémité
         
@@ -61,7 +61,7 @@ class Winspec :
         
         
     def command(self,command):
-        
+                
         if command == 'STATE?':
             return int(self.isConnected())
         elif command == 'CONNECT':
@@ -272,5 +272,8 @@ class Winspec :
     
     
     
+if __name__ == '__main__' : 
     
+    __file__ = os.getcwd()
+    winspec = Device()
     

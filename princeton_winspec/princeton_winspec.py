@@ -4,44 +4,24 @@ Created on Wed Apr  3 20:06:08 2019
 
 @author: quentin.chateiller
 """
-import socket
 import pandas as pd
 import numpy as np
 
-class Device():
-    
-    
-    
+from connector import WinspecConnector
+
+class Device(WinspecConnector):    
     
     def __init__(self):
+        WinspecConnector.__init__(self)
         
-        self.ADDRESS = '192.168.0.3'
-        self.PORT = 5005
-        self.BUFFER_SIZE = 40000
         self.minCountsAllowed=5000
         self.maxCountsAllowed=61000
         self.nbPixelsFitBaseline=10 # en % du spectre à chaque extrémité
         
-        self.controller = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.controller.connect((self.ADDRESS,self.PORT))
-        
         self.data = {'exposureTime':None,'spectrum':None}
         self.write('Initialize')
+                
         
-
-        
-        
-    def write(self,command):
-        self.controller.send(command.encode())
-        self.controller.recv(self.BUFFER_SIZE)
-        
-    def query(self,command):
-        self.controller.send(command.encode())
-        data = self.controller.recv(self.BUFFER_SIZE)
-        return data.decode()
-        
-
-    
         
     def isConnected(self):
         try :
@@ -50,12 +30,7 @@ class Device():
             return False
 
     
-    def close(self):
-        try :
-            self.controller.close()
-        except :
-            pass
-        self.controller = None
+
 
         
         
