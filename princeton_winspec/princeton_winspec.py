@@ -18,6 +18,9 @@ class Device(WinspecConnector):
         self.maxCountsAllowed=61000
         self.nbPixelsFitBaseline=10 # en % du spectre à chaque extrémité
         
+		self.autoBackgroundRemoval = True
+		self.autoExposureTime = True
+		
         self.data = {'exposureTime':None,'spectrum':None}
         self.write('Initialize')
                 
@@ -106,13 +109,37 @@ class Device(WinspecConnector):
             
             self.data['spectrum'] = pd.read_json(self.query('SPECTRUM?'))
             
-        self.data['spectrum'].sort_index(inplace=True)
-        self.data['spectrum']['power']=self.data['spectrum']['counts']/self.getExposureTime() 
-            
+			
+		self.data['spectrum'].sort_index(inplace=True)	
+			
+		if self.isBackgroundRemovalEnabled():
+            self.data['spectrum']['power']=self.data['spectrum']['counts']/self.getExposureTime()
+        else:
+            self.data['spectrum']['CountsWithoutBackground'] =(self.data['spectrum'].counts - self.getBackground())
+            self.data['spectrum']['power']=self.data['spectrum']['CountsWithoutBackground']/self.getExposureTime() 
+			
+			
+			
+	def getBackground(self):
+        if self.data['spectrum'] is None :
+            self.acquireSpectrum()
+            self.data['spectrum'].sort_index(inplace=True)
 
+        total_rows = len(self.data['spectrum'].index)
+        mean_background_blue_wl = self.data['spectrum'].counts.head(int(np.floor(total_rows/10))).mean()
+        mean_background_red_wl = self.data['spectrum'].counts.tail(int(np.floor(total_rows/10))).mean()
+        mean_background = (mean_background_red_wl + mean_background_blue_wl)/2
+        return mean_background
+    
+    
+    def isBackgroundRemovalEnabled(self):
+        return self.autoBackgroundRemoval
     
     
     
+    def setBackgroundRemovalEnabled(self,value):
+        assert isinstance(value,bool)
+        self.autoBackgroundRemoval = value
     
     
     def getTemperature(self):
