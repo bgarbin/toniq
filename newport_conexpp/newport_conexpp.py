@@ -13,15 +13,14 @@ import pandas as pd
 
 class Device():
     
-    def __init__(self,address):
+    def __init__(self,address='ASRL4::INSTR'):
         
-        self.ADDRESS = address
         self.BAUDRATE = 115200
         self.TIMEOUT = 1000 #ms
         
         # Initialisation
         rm = visa.ResourceManager()
-        self.controller = rm.open_resource(self.ADDRESS)
+        self.controller = rm.open_resource(address)
         self.controller.timeout = self.TIMEOUT
         
         # Subdevices

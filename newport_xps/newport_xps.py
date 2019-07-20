@@ -12,15 +12,13 @@ import pandas as pd
 
 class Device():
     
-    def __init__(self,address):
+    def __init__(self,address='192.168.0.99',port=5001):
         
-        self.IP = address
-        self.PORT = 5001
         self.TIMEOUT = 2
         
         # Instantiation
         self.controller = XPSdriver()
-        self.socketID = self.controller.TCP_ConnectToServer(self.IP,self.PORT,self.TIMEOUT)
+        self.socketID = self.controller.TCP_ConnectToServer(address,port,self.TIMEOUT)
 
         # Subdevice
         self.toc = NSR1(self,'NSR1_TOC')

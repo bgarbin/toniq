@@ -11,7 +11,7 @@ def configure(devDriver,devUsit):
     This script configures Usit to use your device properly.
     devDriver is an instance of the class Device() located in the script driver.py
     devUsit is a Usit Device object that this function is supposed to configure, 
-    by affecting the functions contained in devDriver to variable and actions objects 
+    by affecting the functions contained in devDriver to variables and actions objects 
     of the devUsit object.
     """
         

@@ -11,12 +11,8 @@ import visa
 
 class Device():
     
-    
-    
-    
-    def __init__(self,address):
+    def __init__(self,address='ASRL15::INSTR'):
         
-        self.ADDRESS = address
         self.DEF_TIMEOUT = 1000 #ms
         self.LONG_TIMEOUT = 5000 #ms
         self.BAUDRATE = 115200 
@@ -28,7 +24,7 @@ class Device():
 
         # Instantiation
         rm = visa.ResourceManager()
-        self.controller = rm.open_resource(self.ADDRESS)
+        self.controller = rm.open_resource(address)
         self.controller.timeout = self.DEF_TIMEOUT
         self.controller.baudrate = self.BAUDRATE
         

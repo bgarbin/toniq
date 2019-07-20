@@ -9,11 +9,10 @@ import time
 
 class Device():
     
-    def __init__(self,address):
+    def __init__(self,param=2):
         
-        self.address = address
         self.po = 1
-        print('HEEEELLLLOOO')
+        print('HEEEELLLLOOO',param)
     
     def getAmplitude(self):
         return np.random.uniform()

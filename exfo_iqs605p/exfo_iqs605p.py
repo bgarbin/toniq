@@ -9,14 +9,12 @@ from telnetlib import Telnet
 
 class Device():
     
-    def __init__(self,address):
+    def __init__(self,address='192.168.0.99',port=5024):
         
-        self.IP = address
-        self.PORT = 5024
         self.TIMEOUT = 2 #s
         
         # Instantiation
-        self.controller = Telnet(self.IP,self.PORT)
+        self.controller = Telnet(address,port)
         self.read()
         self.read()
         

@@ -9,14 +9,13 @@ import visa
 class Device():
     
     
-    def __init__(self,address):
+    def __init__(self,address='GPIB0::10::INSTR'):
         
-        self.ADDRESS = address
         self.TIMEOUT = 1000 #ms
         
         # Instantiation
         rm = visa.ResourceManager()
-        self.controller = rm.open_resource(self.ADDRESS)
+        self.controller = rm.open_resource(self.address)
         self.controller.timeout = self.TIMEOUT
         
         # Initialisation

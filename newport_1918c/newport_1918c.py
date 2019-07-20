@@ -9,13 +9,12 @@ import ctypes as ct
 
 class Device():
     
-    def __init__(self,address):
+    def __init__(self,libpath=r'C:\Program Files\Newport\Newport USB Driver\Bin\usbdll.dll'):
         
-        self.libpath = address
         self.productID=0xCEC7
         self.modelNumber=1918
         
-        self.controller = ct.windll.LoadLibrary(self.libpath)
+        self.controller = ct.windll.LoadLibrary(libpath)
         
         # Open device
         cproductid = ct.c_int(self.productID)
