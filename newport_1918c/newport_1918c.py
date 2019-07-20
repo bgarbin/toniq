@@ -9,9 +9,9 @@ import ctypes as ct
 
 class Device():
     
-    def __init__(self):
+    def __init__(self,address):
         
-        self.libpath = r'C:\Program Files\Newport\Newport USB Driver\Bin\usbdll.dll' 
+        self.libpath = address
         self.productID=0xCEC7
         self.modelNumber=1918
         

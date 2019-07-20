@@ -13,12 +13,9 @@ import pandas as pd
 
 class Device():
     
-    
-    
-    
-    def __init__(self):
+    def __init__(self,address):
         
-        self.ADDRESS = 'ASRL4::INSTR'
+        self.ADDRESS = address
         self.BAUDRATE = 115200
         self.TIMEOUT = 1000 #ms
         

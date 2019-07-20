@@ -9,12 +9,9 @@ import time
 
 class Device():
     
-    
-    
-    
-    def __init__(self):
+    def __init__(self,address):
         
-        self.ADDRESS = 'GPIB0::11::INSTR'
+        self.ADDRESS = address
         self.TIMEOUT = 1000 #ms
         
         # Instantiation

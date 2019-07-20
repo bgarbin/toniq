@@ -12,9 +12,9 @@ import pandas as pd
 
 class Device():
     
-    def __init__(self):
+    def __init__(self,address):
         
-        self.IP ='192.168.0.254'
+        self.IP = address
         self.PORT = 5001
         self.TIMEOUT = 2
         
