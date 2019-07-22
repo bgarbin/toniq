@@ -5,8 +5,6 @@ Created on Thu May  2 16:47:17 2019
 @author: quentin.chateiller
 """
 
-import pandas as pd
-
 def configure(devDriver,devUsit):
     """
     This script configures Usit to use your device properly.
@@ -24,7 +22,7 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setAutoExposureTimeEnabled,
                         getFunction=devDriver.isAutoExposureTimeEnabled)
     
-    devUsit.addVariable('spectrum',pd.DataFrame,
+    devUsit.addVariable('spectrum','dataframe',
                         getFunction=devDriver.getSpectrum)
     
     devUsit.addVariable('temperature',float,

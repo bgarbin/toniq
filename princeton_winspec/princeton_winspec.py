@@ -7,19 +7,75 @@ Created on Wed Apr  3 20:06:08 2019
 import pandas as pd
 import numpy as np
 
-from connector import WinspecConnector
 
-class Device(WinspecConnector):    
+
+class WinspecConnectorRemote :
+    
+    def __init__(self,address):
+        
+        import socket 
+        
+        self.ADDRESS = address
+        self.PORT = 5005
+        self.BUFFER_SIZE = 40000
+        
+        self.controller = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.controller.connect((self.ADDRESS,self.PORT))        
+        
+    def write(self,command):
+        self.controller.send(command.encode())
+        self.controller.recv(self.BUFFER_SIZE)
+        
+    def query(self,command):
+        self.controller.send(command.encode())
+        data = self.controller.recv(self.BUFFER_SIZE)
+        return data.decode()
+        
+    def close(self):
+        try :
+            self.controller.close()
+        except :
+            pass
+        self.controller = None
+
+
+
+
+
+class WinspecConnectorLocal : #not used
+
     
     def __init__(self):
-        WinspecConnector.__init__(self)
+        from .winspec_gui_driver import Winspec
+        self.controller = Winspec()
+        print('passffbhdfhdfh')
+              
+    def write(self,command):
+        self.controller.command(command)
         
+    def query(self,command):
+        return self.controller.command(command)
+        
+    def close(self):
+        self.controller = None
+
+
+
+
+
+class Device(WinspecConnectorRemote):    
+    
+    def __init__(self, address='192.168.0.3'):
+        
+        WinspecConnectorRemote.__init__(self,address)
+                
         self.minCountsAllowed=5000
         self.maxCountsAllowed=61000
         self.nbPixelsFitBaseline=10 # en % du spectre à chaque extrémité
         
-		self.autoBackgroundRemoval = True
-		self.autoExposureTime = True
+        # Defaults
+        self.autoBackgroundRemoval = False
+        self.autoExposureTime = True
 		
         self.data = {'exposureTime':None,'spectrum':None}
         self.write('Initialize')
@@ -109,18 +165,16 @@ class Device(WinspecConnector):
             
             self.data['spectrum'] = pd.read_json(self.query('SPECTRUM?'))
             
-			
-		self.data['spectrum'].sort_index(inplace=True)	
-			
-		if self.isBackgroundRemovalEnabled():
+		
+        self.data['spectrum'].sort_index(inplace=True)
+        
+        if self.isBackgroundRemovalEnabled():
             self.data['spectrum']['power']=self.data['spectrum']['counts']/self.getExposureTime()
         else:
             self.data['spectrum']['CountsWithoutBackground'] =(self.data['spectrum'].counts - self.getBackground())
-            self.data['spectrum']['power']=self.data['spectrum']['CountsWithoutBackground']/self.getExposureTime() 
-			
-			
-			
-	def getBackground(self):
+            self.data['spectrum']['power']=self.data['spectrum']['CountsWithoutBackground']/self.getExposureTime()
+            
+    def getBackground(self):
         if self.data['spectrum'] is None :
             self.acquireSpectrum()
             self.data['spectrum'].sort_index(inplace=True)
@@ -204,3 +258,11 @@ class Device(WinspecConnector):
         wavelength = self.data['spectrum']['wavelength']
         return wavelength.loc[fwhm_idxMax] - wavelength.loc[fwhm_idxMin]
     
+    
+    
+    
+    
+    
+
+
+

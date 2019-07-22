@@ -3,7 +3,7 @@ import socket
 import threading
 import datetime as dt
 
-from winspec import Winspec
+from winspec_gui_driver import Winspec
 
 IP_LOCAL_PREFIX = '192.168.0'
 LISTENING_PORT = 5005
