@@ -18,6 +18,7 @@ class Winspec :
         self.maxExpTimeAllowed=1    #s
         
         self.tempPath = os.path.join(os.path.dirname(os.path.realpath(__file__)),'temp')
+        if os.path.exists(self.tempPath) is False : os.mkdir(self.tempPath)
         self.fileName = 'spectrum_temp.txt'
         self.dataPath = os.path.join(self.tempPath,self.fileName)
         
