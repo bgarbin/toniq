@@ -9,7 +9,7 @@ from telnetlib import Telnet
 
 class Device():
     
-    def __init__(self,address='192.168.0.97',port=5024):
+    def __init__(self,address='192.168.0.1',port=5024):
         
         self.TIMEOUT = 2 #s
         
@@ -19,8 +19,8 @@ class Device():
         self.read()
         
         # Subdevices
-        self.FTB1750_1 = FTB1750(self,1)
-        self.FTB1750_2 = FTB1750(self,2)
+        self.slot1 = FTB1750(self,1)
+        self.slot2 = FTB1750(self,2)
         
     # -------------------------------------------------------------------------
     # Read & Write
@@ -51,7 +51,7 @@ class Device():
         
         
     def getID(self):
-        return self.query('*IDN?')
+        return self.write('*IDN?')
     
     
     
