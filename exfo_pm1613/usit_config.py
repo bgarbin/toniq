@@ -14,19 +14,19 @@ def configure(devDriver,devUsit):
     of the devUsit object.
     """
     
-    devUsit.addVariable('averagingState',bool,
+    devUsit.addVariable('averagingState',
                        setFunction=devDriver.setAveragingState,
                        getFunction=devDriver.getAveragingState)
     
-    devUsit.addVariable('bufferSize',int,
+    devUsit.addVariable('bufferSize',
                        setFunction=devDriver.setBufferSize,
                        getFunction=devDriver.getBufferSize)
     
-    devUsit.addVariable('wavelength',float,
+    devUsit.addVariable('wavelength',
                        setFunction=devDriver.setWavelength,
                        getFunction=devDriver.getWavelength)
     
-    devUsit.addVariable('power',float,
+    devUsit.addVariable('power',
                        getFunction=devDriver.getPower)
     
     devUsit.addAction('zero',

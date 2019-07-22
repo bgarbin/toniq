@@ -17,25 +17,25 @@ def configure(devDriver,devUsit):
     las = devUsit.addModule('laserDiode')
     
     
-    las.addVariable('current',float,
+    las.addVariable('current',
                     setFunction=devDriver.las.setCurrentSetpoint,
                     getFunction=devDriver.las.getCurrentSetpoint)
     
-    las.addVariable('current',float,
+    las.addVariable('current',
                     getFunction=devDriver.las.getCurrent)
     
-    las.addVariable('powerSetpoint',float,
+    las.addVariable('powerSetpoint',
                     setFunction=devDriver.las.setPowerSetpoint,
                     getFunction=devDriver.las.getPowerSetpoint)
     
-    las.addVariable('power',float,
+    las.addVariable('power',
                     getFunction=devDriver.las.getPower)
     
-    las.addVariable('enabled',bool,
+    las.addVariable('enabled',
                     setFunction=devDriver.las.setEnabled,
                     getFunction=devDriver.las.isEnabled)
     
-    las.addVariable('mode',str,
+    las.addVariable('mode',
                     setFunction=devDriver.las.setMode,
                     getFunction=devDriver.las.getMode)
     
@@ -43,32 +43,32 @@ def configure(devDriver,devUsit):
     
     tec = devUsit.addModule('tec')
     
-    tec.addVariable('resistance',float,
+    tec.addVariable('resistance',
                     getFunction=devDriver.tec.getResistance)
     
-    tec.addVariable('gain',int,
+    tec.addVariable('gain',
                     setFunction=devDriver.tec.setGain,
                     getFunction=devDriver.tec.getGain)
     
-    tec.addVariable('currentSetpoint',float,
+    tec.addVariable('currentSetpoint',
                     setFunction=devDriver.tec.setCurrentSetpoint,
                     getFunction=devDriver.tec.getCurrentSetpoint)
     
-    tec.addVariable('current',float,
+    tec.addVariable('current',
                     getFunction=devDriver.tec.getCurrent)
     
-    tec.addVariable('temperatureSetpoint',float,
+    tec.addVariable('temperatureSetpoint',
                     setFunction=devDriver.tec.setTemperatureSetpoint,
                     getFunction=devDriver.tec.getTemperatureSetpoint)
     
-    tec.addVariable('temperature',float,
+    tec.addVariable('temperature',
                     getFunction=devDriver.tec.getTemperature)
     
-    tec.addVariable('enabled',bool,
+    tec.addVariable('enabled',
                     setFunction=devDriver.tec.setEnabled,
                     getFunction=devDriver.tec.isEnabled)
     
-    tec.addVariable('mode',str,
+    tec.addVariable('mode',
                     setFunction=devDriver.tec.setMode,
                     getFunction=devDriver.tec.getMode)
     

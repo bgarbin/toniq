@@ -7,25 +7,16 @@ Created on Thu May  2 16:47:17 2019
 
 def configure(devDriver,devUsit):
     
-    """
-    This script configures Usit to use your device properly.
-    devDriver is an instance of the class Device() located in the script driver.py
-    devUsit is a Usit Device object that this function is supposed to configure, 
-    by affecting the functions contained in devDriver to variables and actions objects 
-    of the devUsit object.
-    """
-        
-    
-    devUsit.addVariable('amplitude',float,
+    devUsit.addVariable('amplitude',
                         getFunction=devDriver.getAmplitude,
                         setFunction=devDriver.setAmplitude,
                         unit='V')
     
-    devUsit.addVariable('phase',float,
+    devUsit.addVariable('phase',
                         getFunction=devDriver.getPhase)
     
     devUsit.addAction('sth',
                         function=devDriver.doSth)
     
-    devUsit.addVariable('dataframe','dataframe',
+    devUsit.addVariable('dataframe',
                         getFunction=devDriver.getDataframe)

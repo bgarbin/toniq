@@ -18,36 +18,36 @@ def configure(devDriver,devUsit):
     
         subDevUsit = devUsit.addModule(subName)    
     
-        subDevUsit.addVariable('resistance',float,
+        subDevUsit.addVariable('resistance',
                         getFunction=subDriver.getResistance)
         
-        subDevUsit.addVariable('power',float,
+        subDevUsit.addVariable('power',
                         getFunction=subDriver.getPower)
         
-        subDevUsit.addVariable('powerCompliance',float,
+        subDevUsit.addVariable('powerCompliance',
                         setFunction=subDriver.setPowerCompliance,
                         getFunction=subDriver.getPowerCompliance)
         
-        subDevUsit.addVariable('current',float,
+        subDevUsit.addVariable('current',
                         setFunction=subDriver.setCurrent,
                         getFunction=subDriver.getCurrent)
         
-        subDevUsit.addVariable('currentCompliance',float,
+        subDevUsit.addVariable('currentCompliance',
                         setFunction=subDriver.setCurrentCompliance,
                         getFunction=subDriver.getCurrentCompliance)
         
-        subDevUsit.addVariable('voltage',float,
+        subDevUsit.addVariable('voltage',
                         setFunction=subDriver.setVoltage,
                         getFunction=subDriver.getVoltage)
         
-        subDevUsit.addVariable('voltageCompliance',float,
+        subDevUsit.addVariable('voltageCompliance',
                         setFunction=subDriver.setVoltageCompliance,
                         getFunction=subDriver.getVoltageCompliance)
         
-        subDevUsit.addVariable('output',bool,
+        subDevUsit.addVariable('output',
                         setFunction=subDriver.setOutputState,
                         getFunction=subDriver.getOutputState)
         
-        subDevUsit.addVariable('4wireMode',bool,
+        subDevUsit.addVariable('4wireMode',
                         setFunction=subDriver.set4wireModeState,
                         getFunction=subDriver.get4wireModeState)

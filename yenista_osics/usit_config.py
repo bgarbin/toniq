@@ -17,44 +17,44 @@ def configure(devDriver,devUsit):
     sld = devUsit.addSubDevice('sld')
     
     
-    sld.addVariable('wavelength',float,
+    sld.addVariable('wavelength',
                         setFunction=devDriver.sld.setWavelength)
     
-    sld.addVariable('power',float,
+    sld.addVariable('power',
                         setFunction=devDriver.sld.setPower,
                         getFunction=devDriver.sld.getPower)
     
-    sld.addVariable('output',bool,
+    sld.addVariable('output',
                         setFunction=devDriver.sld.setOutputState,
                         getFunction=devDriver.sld.getOutputState)
     
     
     t100 = devUsit.addSubDevice('t100')
 
-    t100.addVariable('wavelength',float,
+    t100.addVariable('wavelength',
                         setFunction=devDriver.t100.setWavelength,
                         getFunction=devDriver.t100.getWavelength)
     
-    t100.addVariable('frequency',float,
+    t100.addVariable('frequency',
                         setFunction=devDriver.t100.setFrequency,
                         getFunction=devDriver.t100.getFrequency)
     
-    t100.addVariable('power',float,
+    t100.addVariable('power',
                         setFunction=devDriver.t100.setPower,
                         getFunction=devDriver.t100.getPower)
     
-    t100.addVariable('intensity',float,
+    t100.addVariable('intensity',
                         setFunction=devDriver.t100.setIntensity,
                         getFunction=devDriver.t100.getIntensity)
     
-    t100.addVariable('output',bool,
+    t100.addVariable('output',
                         setFunction=devDriver.t100.setOutputState,
                         getFunction=devDriver.t100.getOutputState)
     
-    t100.addVariable('coherenceControl',bool,
+    t100.addVariable('coherenceControl',
                         setFunction=devDriver.t100.setCoherenceControlState,
                         getFunction=devDriver.t100.getCoherenceControlState)
 
-    t100.addVariable('autoPeakFindControl',bool,
+    t100.addVariable('autoPeakFindControl',
                         setFunction=devDriver.t100.setAutoPeakFindControlState,
                         getFunction=devDriver.t100.getAutoPeakFindControlState)

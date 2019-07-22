@@ -6,42 +6,35 @@ Created on Thu May  2 16:47:17 2019
 """
 
 def configure(devDriver,devUsit):
-    """
-    This script configures Usit to use your device properly.
-    devDriver is an instance of the class Device() located in the script driver.py
-    devUsit is a Usit Device object that this function is supposed to configure, 
-    by affecting the functions contained in devDriver to variable and actions objects 
-    of the devUsit object.
-    """    
 
-    devUsit.addVariable('exposureTime',float,
+    devUsit.addVariable('exposureTime',
                         setFunction=devDriver.setExposureTime,
                         getFunction=devDriver.getExposureTime)
     
-    devUsit.addVariable('autoExposureTime',bool,
+    devUsit.addVariable('autoExposureTime',
                         setFunction=devDriver.setAutoExposureTimeEnabled,
                         getFunction=devDriver.isAutoExposureTimeEnabled)
     
-    devUsit.addVariable('autoBackgroundRemoval',bool,
+    devUsit.addVariable('autoBackgroundRemoval',
                         setFunction=devDriver.setAutoBackgroundRemovalEnabled,
                         getFunction=devDriver.isAutoBackgroundRemovalEnabled)
     
     devUsit.addVariable('spectrum','dataframe',
                         getFunction=devDriver.getSpectrum)
     
-    devUsit.addVariable('temperature',float,
+    devUsit.addVariable('temperature',
                         getFunction=devDriver.getTemperature)
     
-    devUsit.addVariable('mainPeakWavelength',float,
+    devUsit.addVariable('mainPeakWavelength',
                         getFunction=devDriver.getMainPeakWavelength)
     
-    devUsit.addVariable('mainPeakFwhm',float,
+    devUsit.addVariable('mainPeakFwhm',
                         getFunction=devDriver.getMainPeakFWHM)
     
-    devUsit.addVariable('maxPower',float,
+    devUsit.addVariable('maxPower',
                         getFunction=devDriver.getMaxPower)
     
-    devUsit.addVariable('integratedPower',float,
+    devUsit.addVariable('integratedPower',
                         getFunction=devDriver.getIntegratedPower)
     
     devUsit.addAction('acquire',
