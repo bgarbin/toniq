@@ -5,6 +5,7 @@ Created on Wed Apr  3 20:06:08 2019
 @author: quentin.chateiller
 """
 import visa
+import time
 
 class Device():
     
@@ -30,6 +31,7 @@ class Device():
     
     def write(self,command):
         self.controller.write(command)
+        time.sleep(0.25) # By experience 
         
         
         
@@ -93,11 +95,12 @@ class Device():
     
     
     def setOutput(self,state):
+        assert isinstance(state,bool)
         if state is True : self.write("ENABLE")
         else : self.write("DISABLE")
         
     def getOutput(self):
-        ans = self.getPower()
+        ans = self.query("P?")
         if isinstance(ans,str) is True and ans == 'DISABLED' : return False
         else : return True
         

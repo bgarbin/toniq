@@ -32,7 +32,7 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setIntensity,
                         getFunction=devDriver.getIntensity)
     
-    devUsit.addVariable('output',float,
+    devUsit.addVariable('output',bool,
                         setFunction=devDriver.setOutput,
                         getFunction=devDriver.getOutput)
     
