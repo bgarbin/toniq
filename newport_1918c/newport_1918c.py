@@ -21,7 +21,7 @@ class Device():
         useusbaddress = ct.c_bool(1)
         num_devices = ct.c_int()
         status = self.controller.newp_usb_open_devices(cproductid, useusbaddress, ct.byref(num_devices))
-        print(num_devices.value,status)
+
         # Test ouverture
         if status != 0 or num_devices.value == 0:
             raise ValueError('Impossible to load the device')
