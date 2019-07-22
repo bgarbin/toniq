@@ -5,7 +5,6 @@ Created on Wed Apr  3 20:06:08 2019
 @author: quentin.chateiller
 """
 import visa
-import time
 
 class Device():
     
@@ -31,7 +30,6 @@ class Device():
     
     def write(self,command):
         self.controller.write(command)
-        time.sleep(0.25) # By experience 
         
         
         
@@ -49,6 +47,7 @@ class Device():
 
     def setFrequency(self,value):
         self.write(f"F={value}")
+        self.getFrequency()
         
     def getFrequency(self):
         return self.query("F?")
@@ -58,6 +57,7 @@ class Device():
 
     def setWavelength(self,value):
         self.write(f"L={value}")
+        self.getWavelength()
         
     def getWavelength(self):
         return self.query("L?")
@@ -71,6 +71,7 @@ class Device():
         if value == 0 : self.setOutput(False)
         else : 
             if self.getOutput() is False : self.setOutput(True)
+        self.getPower()
         
     def getPower(self):
         ans=self.query("P?")
@@ -85,6 +86,7 @@ class Device():
         if value == 0 : self.setOutput(False)
         else :
             if self.getOutput() is False : self.setOutput(True)
+        self.getIntensity()
         
     def getIntensity(self):
         ans=self.query("I?")
