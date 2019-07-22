@@ -22,6 +22,10 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setAutoExposureTimeEnabled,
                         getFunction=devDriver.isAutoExposureTimeEnabled)
     
+    devUsit.addVariable('autoBackgroundRemoval',bool,
+                        setFunction=devDriver.setAutoBackgroundRemovalEnabled,
+                        getFunction=devDriver.isAutoBackgroundRemovalEnabled)
+    
     devUsit.addVariable('spectrum','dataframe',
                         getFunction=devDriver.getSpectrum)
     

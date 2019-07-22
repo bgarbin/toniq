@@ -168,11 +168,13 @@ class Device(WinspecConnectorRemote):
 		
         self.data['spectrum'].sort_index(inplace=True)
         
-        if self.isBackgroundRemovalEnabled():
-            self.data['spectrum']['power']=self.data['spectrum']['counts']/self.getExposureTime()
-        else:
+        if self.isAutoBackgroundRemovalEnabled():
             self.data['spectrum']['CountsWithoutBackground'] =(self.data['spectrum'].counts - self.getBackground())
             self.data['spectrum']['power']=self.data['spectrum']['CountsWithoutBackground']/self.getExposureTime()
+        else:
+            self.data['spectrum']['power']=self.data['spectrum']['counts']/self.getExposureTime()
+
+            
             
     def getBackground(self):
         if self.data['spectrum'] is None :
@@ -186,12 +188,12 @@ class Device(WinspecConnectorRemote):
         return mean_background
     
     
-    def isBackgroundRemovalEnabled(self):
+    def isAutoBackgroundRemovalEnabled(self):
         return self.autoBackgroundRemoval
     
     
     
-    def setBackgroundRemovalEnabled(self,value):
+    def setAutoBackgroundRemovalEnabled(self,value):
         assert isinstance(value,bool)
         self.autoBackgroundRemoval = value
     
