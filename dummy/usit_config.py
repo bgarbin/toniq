@@ -26,3 +26,6 @@ def configure(devDriver,devUsit):
     
     devUsit.addAction('sth',
                         function=devDriver.doSth)
+    
+    devUsit.addVariable('dataframe','dataframe',
+                        getFunction=devDriver.getDataframe)

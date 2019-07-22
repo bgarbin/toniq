@@ -6,6 +6,7 @@ Created on Fri May 17 16:36:53 2019
 """
 import numpy as np
 import time
+import pandas as pd
 
 class Device():
     
@@ -29,3 +30,9 @@ class Device():
     def doSth(self):
         time.sleep(1)
         print('action')
+        
+    def getDataframe(self):
+        df = pd.DataFrame()
+        d = {'e':1,'f':2}
+        df=df.append(d,ignore_index=True)
+        return df
