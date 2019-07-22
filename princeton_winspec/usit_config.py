@@ -19,7 +19,7 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setAutoBackgroundRemovalEnabled,
                         getFunction=devDriver.isAutoBackgroundRemovalEnabled)
     
-    devUsit.addVariable('spectrum','dataframe',
+    devUsit.addVariable('spectrum',
                         getFunction=devDriver.getSpectrum)
     
     devUsit.addVariable('temperature',
