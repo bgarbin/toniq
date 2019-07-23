@@ -7,10 +7,16 @@ Created on Wed Apr  3 20:06:08 2019
 
 from module_nsr1 import NSR1
 
+ADDRESS = '192.168.0.4'
+PORT = 5001
+CALIBPATH_TOC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TOC_calib'
 
 class Device():
     
-    def __init__(self,address='192.168.0.4',port=5001,calibpath_toc=r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TOC_calib'):
+    def __init__(self,
+                 address=ADDRESS,
+                 port=PORT,
+                 calibpath_toc=CALIBPATH_TOC):
         
         self.TIMEOUT = 2
         

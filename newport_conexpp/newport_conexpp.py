@@ -9,14 +9,16 @@ from module_nsr1 import NSR1
 import visa
 
 
-
+ADDRESS = 'ASRL4::INSTR'
+CALIBPATH_TIC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TIC_calib'
+CALIBPATH_TAC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TAC_calib'
 
 
 class Device():
     
-    def __init__(self,address='ASRL4::INSTR',
-                 calibpath_tic=r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TIC_calib',
-                 calibpath_tac=r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TAC_calib'):
+    def __init__(self,address=ADDRESS,
+                 calibpath_tic=CALIBPATH_TIC,
+                 calibpath_tac=CALIBPATH_TAC):
         
         self.BAUDRATE = 115200
         self.TIMEOUT = 1000 #ms

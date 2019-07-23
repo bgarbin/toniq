@@ -9,9 +9,11 @@ import visa
 from module_sld import SLD
 from module_t100 import T100
 
+ADDRESS = 'GPIB0::15::INSTR'
+
 class Device():
 
-    def __init__(self,address='GPIB0::15::INSTR'):
+    def __init__(self,address=ADDRESS):
         
         self.TIMEOUT = 1000 #ms
         

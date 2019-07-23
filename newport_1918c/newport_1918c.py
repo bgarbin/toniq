@@ -7,9 +7,11 @@ Created on Wed Apr  3 21:17:28 2019
 import time
 import ctypes as ct
 
+LIBPATH = r'C:\Program Files\Newport\Newport USB Driver\Bin\usbdll.dll'
+
 class Device():
     
-    def __init__(self,libpath=r'C:\Program Files\Newport\Newport USB Driver\Bin\usbdll.dll'):
+    def __init__(self,libpath=LIBPATH):
         
         self.productID=0xCEC7
         self.modelNumber=1918

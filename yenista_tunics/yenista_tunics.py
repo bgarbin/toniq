@@ -6,9 +6,11 @@ Created on Wed Apr  3 20:06:08 2019
 """
 import visa
 
+ADDRESS = 'GPIB0::9::INSTR'
+
 class Device():
     
-    def __init__(self,address='GPIB0::9::INSTR'):
+    def __init__(self,address=ADDRESS):
         
         self.TIMEOUT = 1000 #ms
         

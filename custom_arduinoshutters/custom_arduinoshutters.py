@@ -6,12 +6,11 @@ Created on Wed Apr  3 20:06:08 2019
 """
 import visa
 
-
-
+ADDRESS = 'ASRL15::INSTR'
 
 class Device():
     
-    def __init__(self,address='ASRL15::INSTR'):
+    def __init__(self,address=ADDRESS):
         
         self.DEF_TIMEOUT = 1000 #ms
         self.LONG_TIMEOUT = 5000 #ms

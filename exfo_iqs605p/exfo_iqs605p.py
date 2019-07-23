@@ -8,9 +8,12 @@ Created on Wed Apr  3 20:06:08 2019
 from telnetlib import Telnet
 from module_iqs9100b import IQS9100B
 
+ADDRESS = '192.168.0.99'
+PORT = 5024
+
 class Device():
     
-    def __init__(self,address='192.168.0.99',port=5024):
+    def __init__(self,address=ADDRESS,port=PORT):
         
         self.TIMEOUT = 2 #s
         
