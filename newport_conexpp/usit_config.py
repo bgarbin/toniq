@@ -28,6 +28,9 @@ def configure(devDriver,devUsit):
                             setFunction=subDriver.setTransmission,
                             getFunction=subDriver.getTransmission)
         
+        subDevUsit.addVariable('calibrationFunction',
+                               setFunction=subDriver.setCalibrationGetPowerFunction)
+            
         subDevUsit.addAction('setMin',
                           function=subDriver.setMin)
         
@@ -36,6 +39,9 @@ def configure(devDriver,devUsit):
         
         subDevUsit.addAction('goHome',
                           function=subDriver.goHome)
+        
+        subDevUsit.addAction('calibrate',
+                      function=subDriver.calibrate)
         
     
     

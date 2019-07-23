@@ -27,6 +27,9 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.toc.setTransmission,
                         getFunction=devDriver.toc.getTransmission)
     
+    toc.addVariable('calibrationFunction',
+                        setFunction=devDriver.toc.setCalibrationGetPowerFunction)
+    
     toc.addAction('setMin',
                       function=devDriver.toc.setMin)
     
@@ -35,6 +38,9 @@ def configure(devDriver,devUsit):
     
     toc.addAction('goHome',
                       function=devDriver.toc.goHome)
+    
+    toc.addAction('calibrate',
+                      function=devDriver.toc.calibrate)
         
     
     
