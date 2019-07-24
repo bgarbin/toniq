@@ -16,6 +16,7 @@ class Device():
         self.pvcam = pvcam_Manis.Init_PVCam()
         
 		### Initiate communication with the requested camera ###
+        print('Trying to get: %s' %camera_name)
         self.CAM = self.get_camera(camera_name=camera_name)
 
 #        if query:
@@ -27,18 +28,18 @@ class Device():
 #            self.scope.write(command)
 #            print('\n')
 
-        self.data = self.get_data(nb_frames=nb_frames,exposure=exposure)
-        self.save_data(filename='test',camera_name=camera_name,FORCE=FORCE)
+        #self.data = self.get_data(nb_frames=nb_frames,exposure=exposure)
+        #self.save_data(filename='test',camera_name=camera_name,FORCE=FORCE)
         
-        sys.exit()
+        #sys.exit()
 
     def get_data(self, nb_frames=1, exposure=None, region=None, binning=None):
         data = self.CAM.acq(frames=nb_frames, exposure=exposure, region=region, binning=binning)
-        data2 = [list(data[i].squeeze()) for i in xrange(len(data))]
-        return data2
+        self.data = [list(data[i].squeeze()) for i in xrange(len(data))]
+        #return data2
 
     def save_data(self,filename,camera_name=CAMERA,FORCE=False):
-        # Verify file doesn't exist
+        # Verify file doesn't already exist
         temp_filename = filename + '_spectro32' + camera_name + '.txt'
         #temp = subprocess.getoutput('ls').splitlines()
         #for i in range(len(temp)):
