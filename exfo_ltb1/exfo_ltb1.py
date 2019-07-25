@@ -11,9 +11,11 @@ from module_ftb1750 import FTB1750
 ADDRESS = '192.168.0.1'
 PORT = 5024
 
+modules_dict = {'ftb1750':FTB1750}
+
 class Device():
     
-    def __init__(self,address=ADDRESS,port=PORT):
+    def __init__(self,address=ADDRESS,port=PORT,**kwargs):
         
         self.TIMEOUT = 2 #s
         
@@ -22,9 +24,14 @@ class Device():
         self.read()
         self.read()
         
-        # Subdevices
-        self.slot1 = FTB1750(self,1)
-        self.slot2 = FTB1750(self,2)
+        # Submodules
+        prefix = 'slot'
+        for key in kwargs.keys():
+            if key.startswith(prefix):
+                slot_num = key[len(prefix):]
+                module = modules_dict[ kwargs[key].split(',')[0].strip() ]
+                name = kwargs[key].split(',')[1].strip()
+                setattr(self,name,module(self,slot_num))
         
     # -------------------------------------------------------------------------
     # Read & Write

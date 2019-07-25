@@ -36,7 +36,7 @@ class SLD():
     #--------------------------------------------------------------------------
     
     def getPrefix(self):
-        return f'CH{self.getSlotID()}:'
+        return f'CH{self.SLOT}:'
         
     def cleanResult(self,result):
         try:

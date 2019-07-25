@@ -11,9 +11,11 @@ from module_t100 import T100
 
 ADDRESS = 'GPIB0::15::INSTR'
 
+modules_dict = {'sld':SLD,'t100':T100}
+
 class Device():
 
-    def __init__(self,address=ADDRESS):
+    def __init__(self,address=ADDRESS,**kwargs):
         
         self.TIMEOUT = 1000 #ms
         
@@ -21,8 +23,15 @@ class Device():
         self.controller = rm.open_resource(address)
         self.controller.timeout = self.TIMEOUT
         
-        self.sld = SLD(self,1)
-        self.t100 = T100(self,2)
+        # Submodules
+        prefix = 'slot'
+        for key in kwargs.keys():
+            if key.startswith(prefix):
+                slot_num = key[len(prefix):]
+                module = modules_dict[ kwargs[key].split(',')[0].strip() ]
+                name = kwargs[key].split(',')[1].strip()
+                setattr(self,name,module(self,slot_num))
+
 
         
     def close(self):
