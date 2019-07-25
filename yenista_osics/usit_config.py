@@ -17,9 +17,6 @@ def configure(devDriver,devUsit):
     sld = devUsit.addSubDevice('sld')
     
     
-    sld.addVariable('wavelength',
-                        setFunction=devDriver.sld.setWavelength)
-    
     sld.addVariable('power',
                         setFunction=devDriver.sld.setPower,
                         getFunction=devDriver.sld.getPower)
