@@ -22,7 +22,6 @@ class Device():
         
         # Initialisation
         self.write('*CLS')
-        self.write('*RST')
         self.write('SENS:POW:RANG:AUTO 1')      # Ajuster la gamme de mesure automatiquement
         self.write('SENS:POW:REF:STAT 0')       # Set Absolute power measurment mode (dBm or W)
         self.write('SENS:POW W')                # Unité = Watts
