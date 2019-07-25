@@ -15,7 +15,7 @@ class IQS9100B():
         
         # Initialisation
         self.dev.write(f'LINS1{self.SLOT}:STAT?')
-        
+        self.dev.write('*OPC?')
         
     def setSafeState(self):
         self.setShutter(True)
@@ -29,6 +29,7 @@ class IQS9100B():
         if currRoute != routeID :
             self.dev.write(f"LINS1{self.SLOT}:ROUT1:SCAN {int(routeID)}")
             self.dev.write(f'LINS1{self.SLOT}:ROUT1:SCAN:ADJ')
+            self.dev.write('*OPC?')
 
     def getRoute(self):
         ans=self.dev.write(f'LINS1{self.SLOT}:ROUT1:SCAN?')
@@ -46,4 +47,5 @@ class IQS9100B():
             self.dev.write(f"LINS1{self.SLOT}:ROUT1:OPEN")
         else :
             self.dev.write(f"LINS1{self.SLOT}:ROUT1:CLOS")
+        self.dev.write('*OPC?')
         

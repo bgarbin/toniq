@@ -16,7 +16,7 @@ class FTB1750():
         self.dev.write(f"LINS1:UNIT{self.SLOT}:POW W")                # Unité = Watts
         self.dev.write(f"LINS1:SENS{self.SLOT}:POW:RANG:AUTO 1")      # Ajuster la gamme de mesure automatiquement
         self.dev.write(f"LINS1:SENS{self.SLOT}:POW:REF:STAT 0")       # Set Absolute power measurment mode (dBm or W)
-    
+        self.dev.write('*OPC?')
     
 
     
@@ -26,6 +26,7 @@ class FTB1750():
         if state != currentState :
             state = int(state)
             self.dev.write(f"LINS1:SENS{self.SLOT}:AVER:STAT {state}")
+            self.dev.write('*OPC?')
     
     def getAveragingState(self):
         ans = self.dev.write(f"LINS1:SENS{self.SLOT}:AVER:STAT?")
@@ -45,6 +46,7 @@ class FTB1750():
         currentSize=self.getBufferSize()
         if currentSize != value :
             self.dev.write(f"LINS1:SENS{self.SLOT}:AVER:COUN {value}")
+            self.dev.write('*OPC?')
 
 
  
@@ -64,6 +66,7 @@ class FTB1750():
         currentWavelength=self.getWavelength()
         if wavelength != currentWavelength :
             self.dev.write(f"LINS1:SENS{self.SLOT}:POW:WAV {wavelength} nm")
+            self.dev.write('*OPC?')
 
     
     def getWavelength(self):
