@@ -41,17 +41,10 @@ class Device():
         try : self.controller.close()
         except : pass
 
-#    def query(self,command):
-        
-#        result = self.controller.query(command)
-#        result = result.strip('\n')
-#        if '=' in result : result = result.split('=')[1]
-#        try : result = float(result)
-#        except: pass
-#        return result
+    
+    
     
     def write(self,command):
-        print(command)
         self.controller.write(command)
         
     def read(self):
@@ -60,7 +53,6 @@ class Device():
         return result
     
     def query(self,command):
-        print(command)
         result = self.controller.query(command)
         result = result.strip('\n')
         return result
