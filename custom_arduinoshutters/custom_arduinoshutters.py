@@ -25,7 +25,7 @@ class Device():
         rm = visa.ResourceManager()
         self.controller = rm.open_resource(address)
         self.controller.timeout = self.DEF_TIMEOUT
-        self.controller.baudrate = self.BAUDRATE
+        self.controller.baud_rate = self.BAUDRATE
         
         self.config = '111' # default position ALL closed
         
