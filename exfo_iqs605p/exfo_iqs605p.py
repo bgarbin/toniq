@@ -17,10 +17,13 @@ class Device():
     
     def __init__(self,address=ADDRESS,port=PORT,**kwargs):
         
+        self.TIMEOUT = 1
+        
         # Instantiation
         self.controller = Telnet(address,port)
         self.read()
         self.read()
+        self.write('*CLS')
 #        
         # Submodules
         prefix = 'slot'
@@ -60,7 +63,7 @@ class Device():
         
         
     def getID(self):
-        return self.query('*IDN?')
+        return self.write('*IDN?')
     
     
     

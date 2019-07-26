@@ -17,7 +17,7 @@ class Device():
     
     def __init__(self,address=ADDRESS,port=PORT,**kwargs):
         
-        self.TIMEOUT = 2 #s
+        self.TIMEOUT = 1 #s
         
         # Instantiation
         self.controller = Telnet(address,port)
