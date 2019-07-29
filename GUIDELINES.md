@@ -1,6 +1,6 @@
 # Driver creation guidelines
 
-The goal of this tutorial is to present the general structure of the driver of this GitHub repository, in order for you to create your own drivers based on this structure, and make them available in this repository.
+The goal of this tutorial is to present the general structure of the drivers of this GitHub repository, in order for you to create your own drivers based on this structure, and make them available in this repository.
 
 ## Directory organization
 
@@ -10,7 +10,7 @@ Each different device has its own folder in this repository. The name of this fo
 
 ### Device class
 
-Inside the driver script, a driver is basically represented by a class `Device`. This class can be view as a "cooking recipe" that explains how to interact with your device. But in order to really interact with it, we need to create an instance of this class (like making a cake from a recipe, and store it in a variable (for example `my_device`):
+Inside the driver script, a driver is basically represented by a class `Device`. This class can be view as a "cooking recipe" that explains to Python how to interact with your device. But in order to interact with it effectively, we need to create an instance of this class (like making a cake from a recipe), and to store it in a variable (for example `my_device`):
 
 ```python
 class Device() :
@@ -22,14 +22,18 @@ my_device = Device()
 
 ### Controller
 
-First of all, we have to configure a first attribute attribute in this class, which the controller. This will be the object through which we are interacting with the device. In most cases, you will use the python package `visa` for GPIB, SERIAL, USB connections (see its documentation). You can also use the packages `telnet` or `socket` for ETHERNET communications. In any case, the controller needs the address of your device to establish a connection with it. With `visa`, you can get the available addresses we these three lines of codes:
+First of all, we have to configure a first attribute in this class: the controller. This will be the object through which we are communicating with the device. In most cases, you will use the python package `visa` for GPIB, SERIAL, USB connections (see its documentation). You can also use the packages `telnet` or `socket` for ETHERNET communications.  
+
+In any case, the controller needs the address of your device to establish a connection with it. With `visa`, you can get the available addresses we these three lines of codes:
 
 ```python
 import visa
 rm = visa.ResourceManager()
 rm.list_resources()
 ```
-For ethernet connections, you should know the IP address (set it to be part of your local network) and the port (documentation) of your device.   
+Just execute it before and after plugging your device to see which address appeared. 
+
+For ethernet connections, you should know the IP address (set it to be part of your local network) and the port (device documentation) of your device.   
 
 This address is provided when we instantiate the device, but we store a default value in a variable `ADDRESS`.
 
@@ -74,7 +78,7 @@ You can know create a connection to your device, and close it properly.
 
 ### Query / Write / Read functions
 
-We have know to create interaction functions such as `write`, `query` or `read`. If using `visa`, these functions already exists.
+We now have to create interaction functions such as `write`, `query` or `read`. These functions already exists in `visa`.
 
 ```python
 import visa
@@ -101,7 +105,7 @@ class Device() :
 my_device = Device() 
 ```
 
-We can know send commands to our devices, let's define them.
+We are now able to send commands and get results to our devices. Let's now define the functions associated to these commands.
 
 ### Device functions
 
