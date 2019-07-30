@@ -22,6 +22,8 @@ class NSR1():
         self.dev = dev
         self.NAME = name
         self.SLOT = slot
+        
+        self.checkNOTREFstate()
     
         self.calibPath = calibPath
         assert os.path.exists(calibPath)
@@ -30,97 +32,6 @@ class NSR1():
         self.calib = None
         self.loadCalib()
         
-        
-        
-    # Calibration functions
-    # =========================================================================
-    
-    def loadCalib(self):
-        try: self.calib = pd.read_csv(os.path.join(self.calibPath,'calib.csv'))
-        except: pass
-    
-    def setCalibrationGetPowerFunction(self,calibrationFunction):
-        self.calibrationFunction = calibrationFunction
-        
-    def calibrate(self):
-        
-        assert self.calibrationFunction is not None
-        
-        def scan(listAngle):
-            
-            df = pd.DataFrame()
-
-            for angle_setpoint in listAngle :
-                self.setAngle(angle_setpoint)
-                angle=self.getAngle()
-                power=self.calibrationFunction()
-                df=df.append({'angle':angle,'power':power})
-                   
-            df.sort_values(by=['angle'],inplace=True)
-            return df
-        
-        plt.ioff()
-        fig = plt.figure()
-        ax=fig.add_subplot(111)
-        
-        # Homing
-        self.goHome()
-        
-        # Fabrication de la liste des angles à explorer
-        listAngle = np.concatenate((np.arange(0,360,8),np.arange(4,360,8)))
-        listAngle = np.flipud(listAngle)
-        
-        # Lancement du scan de mesure de puissance
-        df=scan(listAngle)
-        
-        # Find transition
-        derivative = np.diff(df.power)
-        imax=np.argmax(derivative)
-        
-        # Recoupage
-        df_shifted = pd.DataFrame()
-        df_shifted['power'] = np.concatenate((df.power[imax:],df.power[0:imax]))
-        df_shifted['angle'] = np.concatenate((df.angle[imax:]-360,df.angle[0:imax]))
-        df = df_shifted
-        
-        # Suppression transition sur 10deg
-        df = pd.DataFrame()
-        df = df[df.angle>(df.angle.min()+10)]
-        df = df[df.angle<(df.angle.max()-10)]
-        
-        # Normalisation
-        df['transmission']=df.power/df.power.max()
-        ax.plot(df.angle,df.transmission,'x',label='raw')
-        
-        # Lissage
-        df['transmission']=savgol_filter(df.transmission, 7, 3)
-        
-        # Interpolation
-        interpolFunc=interp1d(df.angle, df.transmission, kind='cubic')
-        df['angle']=np.linspace(df.angle.min(),df.angle.max(),1000)
-        df['transmission']=interpolFunc(df.angle)
-        
-        # EXTRACT On ne garde que entre 0% et 95% car trop bruité au dessus
-        df = df[df.transmission<0.95]
-        
-        # Sauvegarde plot
-        date=time.strftime("%Y%m%d_%H%M%S")
-        ax.plot(df.angle,df.transmission,'r-',label='Final')
-        ax.set_title(f'{self.NAME} filter {date}')
-        ax.grid()
-        ax.set_xlabel('Angle [deg]')
-        ax.set_ylabel('Power [a.u.]')
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles, labels, loc=0)
-        filepath=os.path.join(self.calibPath,f'{date}_{self.NAME}_calib.jpg')
-        fig.savefig(filepath,bbox_inches='tight',dpi=300)
-        fig.close()
-           
-        # Enregistrement des données 
-        df.to_csv(os.path.join(self.calibPath,'calib.csv'))
-        
-        # Raffraichissement des donnees
-        self.loadCalib()
         
         
     # Query write functions
@@ -146,7 +57,7 @@ class NSR1():
     # =========================================================================
             
     def getID(self):
-        return self.query('ID?',unwrap=False)
+        return self.query('ID?')
     
     
     
@@ -190,7 +101,6 @@ class NSR1():
     
     def setEnabled(self,value):
         assert isinstance(bool(value),bool)
-        self.checkNOTREFstate()                
         self.write('MM'+str(int(value)))
     
     def isEnabled(self):
@@ -370,3 +280,93 @@ class NSR1():
             time.sleep(0.1)
             
             
+            
+    # Calibration functions
+    # =========================================================================
+    
+    def loadCalib(self):
+        try: self.calib = pd.read_csv(os.path.join(self.calibPath,'calib.csv'))
+        except: pass
+    
+    def setCalibrationGetPowerFunction(self,calibrationFunction):
+        self.calibrationFunction = calibrationFunction
+        
+    def calibrate(self):
+        
+        assert self.calibrationFunction is not None
+        
+        def scan(listAngle):
+            
+            df = pd.DataFrame()
+
+            for angle_setpoint in listAngle :
+                self.setAngle(angle_setpoint)
+                angle=self.getAngle()
+                power=self.calibrationFunction()
+                df=df.append({'angle':angle,'power':power})
+                   
+            df.sort_values(by=['angle'],inplace=True)
+            return df
+        
+        plt.ioff()
+        fig = plt.figure()
+        ax=fig.add_subplot(111)
+        
+        # Homing
+        self.goHome()
+        
+        # Fabrication de la liste des angles à explorer
+        listAngle = np.concatenate((np.arange(0,360,8),np.arange(4,360,8)))
+        listAngle = np.flipud(listAngle)
+        
+        # Lancement du scan de mesure de puissance
+        df=scan(listAngle)
+        
+        # Find transition
+        derivative = np.diff(df.power)
+        imax=np.argmax(derivative)
+        
+        # Recoupage
+        df_shifted = pd.DataFrame()
+        df_shifted['power'] = np.concatenate((df.power[imax:],df.power[0:imax]))
+        df_shifted['angle'] = np.concatenate((df.angle[imax:]-360,df.angle[0:imax]))
+        df = df_shifted
+        
+        # Suppression transition sur 10deg
+        df = pd.DataFrame()
+        df = df[df.angle>(df.angle.min()+10)]
+        df = df[df.angle<(df.angle.max()-10)]
+        
+        # Normalisation
+        df['transmission']=df.power/df.power.max()
+        ax.plot(df.angle,df.transmission,'x',label='raw')
+        
+        # Lissage
+        df['transmission']=savgol_filter(df.transmission, 7, 3)
+        
+        # Interpolation
+        interpolFunc=interp1d(df.angle, df.transmission, kind='cubic')
+        df['angle']=np.linspace(df.angle.min(),df.angle.max(),1000)
+        df['transmission']=interpolFunc(df.angle)
+        
+        # EXTRACT On ne garde que entre 0% et 95% car trop bruité au dessus
+        df = df[df.transmission<0.95]
+        
+        # Sauvegarde plot
+        date=time.strftime("%Y%m%d_%H%M%S")
+        ax.plot(df.angle,df.transmission,'r-',label='Final')
+        ax.set_title(f'{self.NAME} filter {date}')
+        ax.grid()
+        ax.set_xlabel('Angle [deg]')
+        ax.set_ylabel('Power [a.u.]')
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, loc=0)
+        filepath=os.path.join(self.calibPath,f'{date}_{self.NAME}_calib.jpg')
+        fig.savefig(filepath,bbox_inches='tight',dpi=300)
+        fig.close()
+           
+        # Enregistrement des données 
+        df.to_csv(os.path.join(self.calibPath,'calib.csv'))
+        
+        # Raffraichissement des donnees
+        self.loadCalib()

@@ -18,12 +18,11 @@ class Device():
     def __init__(self,address=ADDRESS,**kwargs):
         
         self.BAUDRATE = 115200
-        self.TIMEOUT = 1000 #ms
         
         # Initialisation
         rm = visa.ResourceManager()
         self.controller = rm.open_resource(address)
-        self.controller.timeout = self.TIMEOUT
+        self.controller.baud_rate = self.BAUDRATE
         
         # Submodules
         prefix = 'slot'
@@ -42,10 +41,7 @@ class Device():
 
     def query(self,command):
         result = self.controller.query(command)
-        result = result.strip('\n')
-        if '=' in result : result = result.split('=')[1]
-        try : result = float(result)
-        except: pass
+        result = result.strip('\r\n')
         return result
     
     def write(self,command):
