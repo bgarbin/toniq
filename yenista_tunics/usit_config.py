@@ -27,4 +27,8 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setOutput,
                         getFunction=devDriver.getOutput)
     
+    devUsit.addVariable('motorSpeed',
+                        setFunction=devDriver.setMotorSpeed,
+                        getFunction=devDriver.getMotorSpeed)
+    
     
