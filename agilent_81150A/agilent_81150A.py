@@ -7,13 +7,13 @@ import sys
 import time
 from numpy import zeros,ones,linspace
 
-IP = '169.254.119.244'
+ADDRESS = 'TCPIP::169.254.119.244::INSTR'
 
 class Device():
-    def __init__(self,host=IP):
+    def __init__(self,address=ADDRESS):
         # Instantiation
         rm = v.ResourceManager('@py')
-        self.inst = rm.get_instrument('TCPIP::'+host+'::INSTR')
+        self.inst = rm.get_instrument(address)
     
     def amplitude(self,chan,amplitude):
         self.write(':VOLT'+chan+' '+amplitude)
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     parser.add_option("-p", "--pulsemode", type="str", dest="pulsemode", default=None, help="Set pulse mode and use argument as either the duty cycle or the pulse width depending on the first letter 'd' or 'w' (see examples)." )
     parser.add_option("-a", "--amplitude", type="str", dest="amplitude", default=None, help="Set the amplitude." )
     parser.add_option("-f", "--frequency", type="str", dest="frequency", default=None, help="Set the frequency; may be 50000 or 50KHZ" )
-    parser.add_option("-i", "--ip_address", type="str", dest="ip_address", default=IP, help="Set the Ip address to use for communicate." )
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the Ip address to use for communicate." )
     (options, args) = parser.parse_args()
     
     ### Compute channels to act on ###
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         print(chan)
 
     ### Start the talker ###
-    I = Device(host=options.ip_address)
+    I = Device(address=options.address)
     if options.query:
         print('\nAnswer to query:',options.query)
         rep = I.query(options.query)

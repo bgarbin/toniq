@@ -10,35 +10,15 @@ import visa as v
 # Get functions not available for instrument
 # default GPIB address
 
-GPIB_PORT = 7
+ADDRESS = 'GPIB::7::INSTR'
 
 
 class Device():
-    def __init__(self, query=None, command=None, PORT=GPIB_PORT, amplitude=None, frequency=None, RFenable=None, RFdisable=None):
+    def __init__(self, address=ADDRESS):
         ### establish GPIB communication ###
         r = v.ResourceManager('@py')
-        self.scope = r.get_instrument('GPIB::' + PORT + '::INSTR')
+        self.scope = r.get_instrument(address)
 
-        if query:
-            print('\nAnswer to query:', query)
-            self.write(query + '\n')
-            rep = self.read()
-            print(rep, '\n')
-        elif command:
-            print('\nExecuting command', command)
-            self.scope.write(command)
-            print('\n')
-
-        if amplitude:
-            self.modify_rfamp(amplitude)
-        if frequency:
-            self.modify_frequency(str(float(frequency)))
-        if RFenable:
-            self.RFenable()
-        elif RFdisable:
-            self.RFdisable()
-
-        sys.exit()
 
     #####################  FUNCTIONS ##############################################
     def modify_frequency(self, set_frequency):
@@ -66,6 +46,8 @@ class Device():
     def read(self, length=10000000):
         rep = self.scope.read_raw()
         return rep
+    def close(self):
+        pass
 
 
 if __name__ == '__main__':
@@ -81,7 +63,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage)
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use.")
     parser.add_option("-c", "--command", type="str", dest="com", default=None, help="Set the command to execute.")
-    parser.add_option("-i", "--gpib_port", type="str", dest="gpib_port", default=str(GPIB_PORT), help="Set the gpib port to use.")
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the gpib port to use.")
     parser.add_option("-f", "--frequency", type="str", dest="frequency", default=None, help="Set the carrier frequency (Hz)")
     parser.add_option("-a", "--amplitude", type="str", dest="amplitude", default=None, help="Set the carrier RF amplitude (mV)")
     parser.add_option("-x", "--RFenable", action="store_true", dest="RFenable", default=False, help="Enable RF output")
@@ -90,4 +72,26 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     ### Start the talker ###
-    Device(query=options.que, command=options.com, PORT=options.gpib_port, amplitude=options.amplitude, frequency=options.frequency, RFenable=options.RFenable, RFdisable=options.RFdisable)
+    I = Device(address=options.address)
+    
+    if options.query:
+        print('\nAnswer to query:', options.query)
+        I.write(options.query + '\n')
+        rep = I.read()
+        print(rep, '\n')
+    elif options.command:
+        print('\nExecuting command', options.command)
+        I.scope.write(options.command)
+        print('\n')
+
+    if options.amplitude:
+        I.modify_rfamp(options.amplitude)
+    if options.frequency:
+        I.modify_frequency(str(float(options.frequency)))
+    if options.RFenable:
+        I.RFenable()
+    elif options.RFdisable:
+        I.RFdisable()
+    
+    I.close()
+    sys.exit()

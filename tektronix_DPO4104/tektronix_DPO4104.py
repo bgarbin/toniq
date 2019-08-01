@@ -6,11 +6,11 @@ import sys
 import subprocess
 import time
 
-IP = '169.254.172.5'
+ADDRESS = '169.254.172.5'
 
 class Device():
-    def __init__(self,channel=None,filename=None,query=None,command=None,measure=None,PRINT=False):
-        self.scope = v.Instrument(IP)
+    def __init__(self,channel=None,address=ADDRESS,filename=None,query=None,command=None,measure=None,PRINT=False):
+        self.scope = v.Instrument(address)
 
         if query:
             print('\nAnswer to query:',query)
@@ -91,11 +91,11 @@ if __name__ == '__main__':
 
     usage = """usage: %prog [options] arg
     
-               WARNING: - Be sure all the channel you provide are active
+               WARNING: - Make sure all the channel you provide are active
                
                EXAMPLES:
                    DPO4104 1 -o filename
-               Record the first channel and create two files name filename_DPO4104 and filename_4104.log
+               Record the first channel and create two files name filename_DPO4104CH1 and filename_DPO4104CH1.log
 
 
                Work TODO: - write a self.run and a self.stop function
@@ -105,6 +105,7 @@ if __name__ == '__main__':
     parser.add_option("-c", "--command", type="str", dest="com", default=None, help="Set the command to use." )
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use." )
     parser.add_option("-o", "--filename", type="string", dest="filename", default=None, help="Set the name of the output file" )
+    parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set IP address to use for the communication" )
     parser.add_option("-m", "--measure", type="string", dest="measure", default=None, help="number of measure to provide as list or tuple: [nbmeas,sleeptime]" )
     (options, args) = parser.parse_args()
 
@@ -126,5 +127,5 @@ if __name__ == '__main__':
     print(chan)
     
     ### Start the talker ###
-    Device(channel=chan,query=options.que,command=options.com,filename=options.filename,measure=options.measure)
+    Device(channel=chan,query=options.que, address=options.address,command=options.com,filename=options.filename,measure=options.measure)
     

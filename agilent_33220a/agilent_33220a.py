@@ -6,52 +6,33 @@ import sys
 import time
 from numpy import zeros,ones,linspace
 
-IP = '172.24.23.119'
+ADDRESS = 'TCPIP::172.24.23.119::INSTR'
 
 class Device():
-    def __init__(self,query=None,command=None,host=IP,offset=None,amplitude=None,frequency=None,ramp=None):
-
+    def __init__(self,address=ADDRESS):
+        
         rm = v.ResourceManager('@py')
-        self.inst = rm.get_instrument('TCPIP::'+host+'::INSTR')
-        
-        if query:
-            print('\nAnswer to query:',query)
-            rep = self.query(query)
-            print(rep,'\n')
-            self.exit()
-        elif command:
-            print('\nExecuting command',command)
-            self.write(command)
-            print('\n')
-            self.exit()
-        
-        if amplitude:
-            self.amplitude(amplitude)
-        if offset:
-            self.offset(offset)
-        if frequency:
-            self.frequency(frequency)
-        if ramp:
-            self.ramp(ramp)
-        
-        self.exit()
+        self.inst = rm.get_instrument(address)
     
     
     def amplitude(self,amplitude):
-        self.inst.write('VOLT '+amplitude)
+        self.write('VOLT '+amplitude)
     def offset(self,offset):
-        self.inst.write('VOLT:OFFS '+offset)
+        self.write('VOLT:OFFS '+offset)
     def frequency(self,frequency):
-        self.inst.write('FREQ '+frequency)
-    
+        self.write('FREQ '+frequency)
     def ramp(self,ramp):
         l   = list(zeros(5000) - 1)
         lll = list(ones(5000))
         ll  = list(linspace(-1,1,100+ramp))
         l.extend(ll);l.extend(lll)
         s = str(l)[1:-1]
-        self.inst.write('DATA VOLATILE,'+s)
+        self.write('DATA VOLATILE,'+s)
     
+    
+    def close(self):
+        #self.inst.close()
+        pass
     def query(self,query):
         self.write(query)
         return self.read()
@@ -60,8 +41,6 @@ class Device():
     def read(self):
         rep = self.inst.read()
         return rep
-    def exit(self):
-        sys.exit()
     def idn(self):
         self.inst.write('*IDN?')
         self.read()
@@ -74,7 +53,7 @@ if __name__ == '__main__':
                
                EXAMPLES:
                    
-
+                
 
                """
     parser = OptionParser(usage)
@@ -84,8 +63,30 @@ if __name__ == '__main__':
     parser.add_option("-o", "--offset", type="str", dest="off", default=None, help="Set the offset value." )
     parser.add_option("-a", "--amplitude", type="str", dest="amp", default=None, help="Set the amplitude." )
     parser.add_option("-f", "--frequency", type="str", dest="freq", default=None, help="Set the frequency." )
-    parser.add_option("-i", "--ip_address", type="str", dest="ip_address", default=IP, help="Set the Ip address to use for communicate." )
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the Ip address to use for communicate." )
     (options, args) = parser.parse_args()
     
     ### Start the talker ###
-    Device(query=options.que,command=options.com,host=options.ip_address,ramp=options.ramp,offset=options.off,amplitude=options.amp,frequency=options.freq)
+    I = Device(address=options.address)
+    if options.query:
+        print('\nAnswer to query:',options.query)
+        rep = I.query(options.query)
+        print(rep,'\n')
+        sys.exit()
+    elif options.command:
+        print('\nExecuting command',options.command)
+        I.write(options.command)
+        print('\n')
+        sys.exit()
+    
+    if options.amplitude:
+        I.amplitude(options.amplitude)
+    if options.offset:
+        I.offset(options.offset)
+    if options.frequency:
+        I.frequency(options.frequency)
+    if options.ramp:
+        I.ramp(options.ramp)
+    
+    I.close()
+    sys.exit()

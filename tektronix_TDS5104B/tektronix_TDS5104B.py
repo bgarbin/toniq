@@ -8,12 +8,12 @@ from optparse import OptionParser
 import subprocess
 from numpy import savetxt
 
-IP="169.254.108.199"
+ADDRESS="169.254.108.199"
 
 class Device():
-    def __init__(self,channel=None, filename=None,query=None,command=None,FORCE=False,SAVE=True):
+    def __init__(self,address=ADDRESS,channel=None,filename=None,query=None,command=None,FORCE=False,SAVE=True):
         ### Establish the connection ###
-        self.scope = v.Instrument(IP)
+        self.scope = v.Instrument(address)
 
         if query:
             print('\nAnswer to query:',query)
@@ -115,6 +115,7 @@ if __name__=="__main__":
     parser.add_option("-c", "--command", type="str", dest="com", default=None, help="Set the command to use." )
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use." )
     parser.add_option("-o", "--filename", type="string", dest="filename", default=None, help="Set the name of the output file" )
+    parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set the IP address to use for the communication" )
     parser.add_option("-F", "--force", type="string", dest="force", default=None, help="Allows overwriting file" )
     (options, args) = parser.parse_args()
 
@@ -132,5 +133,5 @@ if __name__=="__main__":
             chan.append('CH' + str(args[i]))
     print(chan)
     
-    Device(channel=chan,query=options.que,command=options.com,filename=options.filename,FORCE=options.force)
+    Device(address=options.address,channel=chan,query=options.que,command=options.com,filename=options.filename,FORCE=options.force)
 
