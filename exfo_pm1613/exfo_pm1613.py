@@ -7,13 +7,13 @@ Created on Wed Apr  3 20:06:08 2019
 import visa
 import time
 
-ADDRESS = 'GPIB0::11::INSTR'
+ADDRESS = 'GPIB0::12::INSTR'
 
 class Device():
     
     def __init__(self,address=ADDRESS):
         
-        self.TIMEOUT = 1000 #ms
+        self.TIMEOUT = 10000 #ms
         
         # Instantiation
         rm = visa.ResourceManager()
@@ -21,6 +21,7 @@ class Device():
         self.controller.timeout = self.TIMEOUT
         
         # Initialisation
+        self.write('*CLS')
         self.write('SENS:POW:RANG:AUTO 1')      # Ajuster la gamme de mesure automatiquement
         self.write('SENS:POW:REF:STAT 0')       # Set Absolute power measurment mode (dBm or W)
         self.write('SENS:POW W')                # Unité = Watts
@@ -64,6 +65,7 @@ class Device():
         currentState=self.getAveragingState()
         if state != currentState :
             self.write('SENS:AVER:STAT %i'%int(state))
+            self.query('*OPC?')
     
     def getAveragingState(self):
         return bool(self.query('SENS:AVER:STAT?'))
@@ -74,7 +76,7 @@ class Device():
     
     def setZero(self):
         self.write('SENS:CORR:COLL:ZERO')
-    
+        self.query('*OPC?')
     
     
     
@@ -88,14 +90,14 @@ class Device():
         currentSize=self.getBufferSize()
         if currentSize != value :
             self.write('SENS:AVER:COUN %i'%value)
-        
+            self.query('*OPC?')
         
         
 
     def getPower(self):
         while True :
             result=self.query('READ:ALL:POW:DC?')
-            if '!' in result :
+            if isinstance(result,str) and '!' in result :
                 time.sleep(0.1)
             else :
                 break
@@ -111,6 +113,7 @@ class Device():
         currentWavelength=self.getWavelength()
         if wavelength != currentWavelength :
             self.write('SENS:POW:WAVE %f'%wavelength)
+            self.query('*OPC?')
     
     def getWavelength(self):
         return float(self.query('SENS:POW:WAVE?'))

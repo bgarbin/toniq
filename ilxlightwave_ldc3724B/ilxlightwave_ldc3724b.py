@@ -13,7 +13,7 @@ class Device():
     
     def __init__(self,address=ADDRESS):
         
-        self.TIMEOUT = 1000 #ms
+        self.TIMEOUT = 15000 #ms
         
         # Instantiation
         rm = visa.ResourceManager()
@@ -69,6 +69,7 @@ class LAS():
     
     def getCurrent(self):
         self.dev.write('LAS:DIS:LDI')
+        self.dev.query('*OPC?')
         return float(self.dev.query('LAS:LDI?'))
 
     def getCurrentSetpoint(self):
@@ -79,6 +80,7 @@ class LAS():
         value = float(value)
         self.dev.write(f'LAS:LDI {value}')
         self.dev.write('LAS:DIS:SET')
+        self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -96,6 +98,7 @@ class LAS():
         value = float(value)
         self.dev.write(f'LAS:MDP {value}')
         self.dev.write('LAS:DIS:SET')
+        self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -107,6 +110,7 @@ class LAS():
 
     def getPower(self):
         self.dev.write('LAS:DIS:MDP')
+        self.dev.query('*OPC?')
         return float(self.dev.query('LAS:MDP?'))
 
     def getPowerSetpoint(self):
@@ -118,6 +122,7 @@ class LAS():
     def setEnabled(self,value):
         assert isinstance(value,bool)
         self.dev.write(f'LAS:OUT {int(value)}')
+        self.dev.query('*OPC?')
         if value is True :
             mode = self.dev.query('LAS:MODE?')
             if mode.startswith('I'):
@@ -155,6 +160,7 @@ class LAS():
         enabledMode = self.isEnabled()
         if currMode != mode :
             self.dev.write(f'LAS:MODE:{mode}')
+            self.dev.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):
@@ -180,6 +186,7 @@ class TEC():
 
     def getResistance(self):
         self.write('TEC:DIS:R')
+        self.dev.query('*OPC?')
         return float(self.query('TEC:R?'))
 
 
@@ -188,6 +195,7 @@ class TEC():
         assert isinstance(int(value),int)
         value = int(value)
         self.write(f'TEC:GAIN {value}')
+        self.dev.query('*OPC?')
         
     def getGain(self):
         return int(float(self.query('TEC:GAIN?')))
@@ -197,6 +205,7 @@ class TEC():
     
     def getCurrent(self):
         self.dev.write('TEC:DIS:ITE')
+        self.dev.query('*OPC?')
         return float(self.dev.query('TEC:ITE?'))
 
     def getCurrentSetpoint(self):
@@ -207,6 +216,7 @@ class TEC():
         value = float(value)
         self.dev.write(f'TEC:ITE {value}')
         self.dev.write('TEC:DIS:SET')
+        self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -224,6 +234,7 @@ class TEC():
         value = float(value)
         self.dev.write(f'TEC:T {value}')
         self.dev.write('TEC:DIS:SET')
+        self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -235,6 +246,7 @@ class TEC():
 
     def getTemperature(self):
         self.dev.write('TEC:DIS:T')
+        self.dev.query('*OPC?')
         return float(self.dev.query('TEC:T?'))
 
     def getTemperatureSetpoint(self):
@@ -247,6 +259,7 @@ class TEC():
     def setEnabled(self,value):
         assert isinstance(value,bool)
         self.dev.write(f'TEC:OUT {int(value)}')
+        self.dev.query('*OPC?')
         if value is True :
             mode = self.dev.query('TEC:MODE?')
             if mode.startswith('I'):
@@ -285,6 +298,7 @@ class TEC():
         enabledMode = self.isEnabled()
         if currMode != mode :
             self.dev.write(f'TEC:MODE:{mode}')
+            self.dev.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):

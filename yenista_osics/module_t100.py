@@ -4,7 +4,6 @@ Created on Tue Jul 23 16:45:47 2019
 
 @author: qchat
 """
-import time
 
 class T100():   
     
@@ -12,10 +11,24 @@ class T100():
         
         self.dev = dev
         self.SLOT = slot
+        self.prefix = f'CH{int(slot)}:'
+        
+        self.write(self.prefix+'NM')
+        self.write(self.prefix+'MW')
 
-        self.dev.write(self.SLOT+self.getPrefix()+'NM')
-        self.dev.write(self.SLOT+self.getPrefix()+'MW')
+
+    def write(self,command):
+        self.dev.write(command)
+        
+    def read(self):
+        return self.dev.read()
     
+    def query(self,command):
+        return self.dev.query(command)
+    
+    #--------------------------------------------------------------------------
+    # Optional functions
+    #--------------------------------------------------------------------------
     
     def setSafeState(self):
         self.setOutputState(False)
@@ -24,15 +37,14 @@ class T100():
             
 
     def getID(self):
-        return self.cleanResult(self.dev.query(self.SLOT+self.getPrefix()+'*IDN?'))
+        result = self.query(self.prefix+'*IDN?')
+        result = self.cleanResult(result)
+        return result
         
         
     #--------------------------------------------------------------------------
     # Instrument variables
     #--------------------------------------------------------------------------
-    
-    def getPrefix(self):
-        return f'CH{self.SLOT}:'
         
     def cleanResult(self,result):
         try:
@@ -47,122 +59,115 @@ class T100():
 
 
     def setWavelength(self,value):
-        assert isinstance(float(value),float)
-        self.dev.write(self.SLOT+"L=%f"%float(value))
-        while True :
-            try :
-                self.getFrequency()
-                break
-            except :
-                pass
+        self.write(self.prefix+f"L={value}")
+        self.query('*OPC?')
         
     def getWavelength(self):
-        return self.cleanResult(self.query(self.SLOT+"L?"))
+        result = self.query(self.prefix+'L?')
+        result = self.cleanResult(result)
+        return result
+    
     
     
     
     
     def setFrequency(self,value):
-        assert isinstance(float(value),float)
-        self.dev.write(self.SLOT+"F=%f"%float(value))
-        while True :
-            try :
-                self.getFrequency()
-                break
-            except :
-                pass
+        self.write(self.prefix+f"F={value}")
+        self.query('*OPC?')
         
     def getFrequency(self):
-        return self.cleanResult(self.dev.query(self.SLOT+"F?"))
+        result = self.query(self.prefix+'F?')
+        result = self.cleanResult(result)
+        return result
+    
+    
     
     
     
     
     def setPower(self,value):
-        assert isinstance(float(value),float)
-        value=float(value)
-        if value == 0.:
+        if value == 0 :
             self.setOutputState(False)
         else :
             if self.getOutputState() is False :
                 self.setOutputState(True)
-            self.dev.write(self.SLOT+"P=%f"%float(value))
-        time.sleep(0.4)
-        
-        
-        
+            self.write(self.prefix+f"P={value}")
+            self.query('*OPC?')
+            
     def getPower(self):
-        ans=self.cleanResult(self.dev.query(self.SLOT+"P?"))
-        if ans == 'Disabled':
+        result = self.query(self.prefix+'P?')
+        result = self.cleanResult(result)
+        if result == 'Disabled':
             return 0
         else :
-            return ans
+            return result
     
+
+
+
 
     
     def setIntensity(self,value):
-        assert isinstance(float(value),float)
-        if value == 0.:
+        if value == 0 :
             self.setOutputState(False)
         else :
             if self.getOutputState() is False :
                 self.setOutputState(True)
-            self.dev.write(self.SLOT+"I=%f"%float(value))
-        
+            self.write(self.prefix+f"I={value}")
+            self.query('*OPC?')
         
     def getIntensity(self):
-        ans=self.cleanResult(self.dev.query(self.SLOT+"I?"))
-        if ans == 'Disabled':
+        result = self.query(self.prefix+'I?')
+        result = self.cleanResult(result)
+        if result == 'Disabled':
             return 0
         else :
-            return ans
+            return result
         
         
     
     
     
     def setCoherenceControlState(self,state):
-        assert isinstance(state,bool)
         if state is True :
-            self.dev.write(self.SLOT+'CTRL ON')
+            self.write(self.prefix+'CTRL ON')
         else :
-            self.dev.write(self.SLOT+'CTRL OFF')
-        time.sleep(0.2)
-    
+            self.write(self.prefix+'CTRL OFF')
+        self.query('*OPC?')
+        
     def getCoherenceControlState(self):
-        state=self.cleanResult(self.dev.query(self.SLOT+'CTRL?'))
-        return bool(int(state))
+        result = self.query(self.prefix+'CTRL?')
+        result = self.cleanResult(result)
+        return bool(int(result))
     
     
     
     
     def setAutoPeakFindControlState(self,state):
-        assert isinstance(state,bool)
         if state is True :
-            self.dev.write(self.SLOT+'APF ON')
+            self.write(self.prefix+'APF ON')
         else :
-            self.dev.write(self.SLOT+'APF OFF')
-        time.sleep(0.2)
+            self.write(self.prefix+'APF OFF')
+        self.query('*OPC?')
         
     def getAutoPeakFindControlState(self):
-        state=self.cleanResult(self.dev.query(self.SLOT+'APF?'))
-        return bool(int(state))
+        result = self.query(self.prefix+'APF?')
+        result = self.cleanResult(result)
+        return bool(int(result))
     
     
     
     
     
     def setOutputState(self,state):
-        assert isinstance(state,bool)
         if state is True :
-            self.dev.write(self.SLOT+"ENABLE")
+            self.write(self.prefix+"ENABLE")
         else :
-            self.dev.write(self.SLOT+"DISABLE")
+            self.write(self.prefix+"DISABLE")
+        self.query('*OPC?')
         
     def getOutputState(self):
-        state=self.cleanResult(self.dev.query(self.SLOT+"ENABLE?"))
-        if state == 'ENABLED' :
-            return True
-        else :
-            return False
+        result = self.query(self.prefix+'ENABLE?')
+        result = self.cleanResult(result)
+        return result == 'ENABLED'
     

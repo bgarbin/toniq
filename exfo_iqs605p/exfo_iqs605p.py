@@ -11,20 +11,29 @@ from module_iqs9100b import IQS9100B
 ADDRESS = '192.168.0.99'
 PORT = 5024
 
+modules_dict = {'iqs9100b':IQS9100B}
+
 class Device():
     
-    def __init__(self,address=ADDRESS,port=PORT):
+    def __init__(self,address=ADDRESS,port=PORT,**kwargs):
         
-        self.TIMEOUT = 2 #s
+        self.TIMEOUT = 1
         
         # Instantiation
         self.controller = Telnet(address,port)
         self.read()
         self.read()
-        
-        # Subdevice
-        self.IQS9100B = IQS9100B(self,4)
-        
+        self.write('*CLS')
+#        
+        # Submodules
+        prefix = 'slot'
+        for key in kwargs.keys():
+            if key.startswith(prefix):
+                slot_num = key[len(prefix):]
+                module = modules_dict[ kwargs[key].split(',')[0].strip() ]
+                name = kwargs[key].split(',')[1].strip()
+                setattr(self,name,module(self,slot_num))
+                
     # -------------------------------------------------------------------------
     # Read & Write
     # -------------------------------------------------------------------------
@@ -54,7 +63,7 @@ class Device():
         
         
     def getID(self):
-        return self.query('*IDN?')
+        return self.write('*IDN?')
     
     
     

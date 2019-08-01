@@ -14,11 +14,8 @@ def configure(devDriver,devUsit):
     of the devUsit object.
     """
     
-    sld = devUsit.addSubDevice('sld')
+    sld = devUsit.addModule('sld')
     
-    
-    sld.addVariable('wavelength',
-                        setFunction=devDriver.sld.setWavelength)
     
     sld.addVariable('power',
                         setFunction=devDriver.sld.setPower,
@@ -29,7 +26,7 @@ def configure(devDriver,devUsit):
                         getFunction=devDriver.sld.getOutputState)
     
     
-    t100 = devUsit.addSubDevice('t100')
+    t100 = devUsit.addModule('t100')
 
     t100.addVariable('wavelength',
                         setFunction=devDriver.t100.setWavelength,

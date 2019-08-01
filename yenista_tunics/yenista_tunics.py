@@ -6,17 +6,19 @@ Created on Wed Apr  3 20:06:08 2019
 """
 import visa
 
-ADDRESS = 'GPIB0::9::INSTR'
+ADDRESS = 'GPIB0::23::INSTR'
 
 class Device():
     
     def __init__(self,address=ADDRESS):
         
-        self.TIMEOUT = 1000 #ms
+        self.TIMEOUT = 15000 #ms
         
         rm = visa.ResourceManager()
         self.controller = rm.open_resource(address)
         self.controller.timeout = self.TIMEOUT
+
+        self.write('MW')
         
     def close(self):
         try : self.controller.close()
@@ -33,6 +35,8 @@ class Device():
     def write(self,command):
         self.controller.write(command)
         
+    def wait(self):
+        self.getID() # Not fantastic but programming interface really basic
         
         
         
@@ -49,7 +53,7 @@ class Device():
 
     def setFrequency(self,value):
         self.write(f"F={value}")
-        self.getFrequency()
+        self.wait()
         
     def getFrequency(self):
         return self.query("F?")
@@ -59,7 +63,7 @@ class Device():
 
     def setWavelength(self,value):
         self.write(f"L={value}")
-        self.getWavelength()
+        self.wait()
         
     def getWavelength(self):
         return self.query("L?")
@@ -73,22 +77,22 @@ class Device():
         if value == 0 : self.setOutput(False)
         else : 
             if self.getOutput() is False : self.setOutput(True)
-        self.getPower()
+        self.wait()
         
     def getPower(self):
         ans=self.query("P?")
-        if isinstance(ans,str) is True and ans == 'DISABLED' : return 0
+        if ans == 'DISABLED' : return 0
         else : return ans
     
 
 
 
     def setIntensity(self,value):
-        self.write("I=%f"%value)
+        self.write("I={float(value)}")
         if value == 0 : self.setOutput(False)
         else :
             if self.getOutput() is False : self.setOutput(True)
-        self.getIntensity()
+        self.wait()
         
     def getIntensity(self):
         ans=self.query("I?")
@@ -99,12 +103,22 @@ class Device():
     
     
     def setOutput(self,state):
-        assert isinstance(state,bool)
         if state is True : self.write("ENABLE")
         else : self.write("DISABLE")
+        self.wait()
         
     def getOutput(self):
         ans = self.query("P?")
-        if isinstance(ans,str) is True and ans == 'DISABLED' : return False
+        if ans == 'DISABLED' : return False
         else : return True
         
+        
+        
+        
+    def getMotorSpeed(self):
+        return self.query("MOTOR_SPEED?")   
+ 
+    
+    def setMotorSpeed(self,value):  # from 1 to 100 nm/s
+        self.write("MOTOR_SPEED={float(value)}")
+        self.wait()

@@ -9,14 +9,14 @@ from module_nsr1 import NSR1
 
 ADDRESS = '192.168.0.4'
 PORT = 5001
-CALIBPATH_TOC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TOC_calib'
+
+modules_dict = {'nsr1':NSR1}
 
 class Device():
     
     def __init__(self,
                  address=ADDRESS,
-                 port=PORT,
-                 calibpath_toc=CALIBPATH_TOC):
+                 port=PORT,**kwargs):
         
         self.TIMEOUT = 2
         
@@ -24,8 +24,16 @@ class Device():
         self.controller = XPS()
         self.socketID = self.controller.TCP_ConnectToServer(address,port,self.TIMEOUT)
 
-        # Subdevice
-        self.toc = NSR1(self,'NSR1_TOC',calibpath_toc)
+        # Submodules
+        prefix = 'slot'
+        for key in kwargs.keys():
+            if key.startswith(prefix):
+                module = modules_dict[ kwargs[key].split(',')[0].strip() ]
+                module_id = kwargs[key].split(',')[1].strip()
+                name = kwargs[key].split(',')[2].strip()
+                calibpath = kwargs[key].split(',')[3].strip()
+                setattr(self,name,module(self,module_id,calibpath))
+
         
     # -------------------------------------------------------------------------
     # Read & Write

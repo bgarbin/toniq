@@ -13,10 +13,20 @@ class SLD():
         
         self.dev = dev
         self.SLOT = slot
+        self.prefix = f'CH{int(slot)}:'
         
-        self.dev.write(self.getPrefix()+'NM')
-        self.dev.write(self.getPrefix()+'MW')
+        self.write(self.prefix+'NM')
+        self.write(self.prefix+'MW')
         
+    def write(self,command):
+        self.dev.write(command)
+        
+    def read(self):
+        return self.dev.read()
+    
+    def query(self,command):
+        return self.dev.query(command)
+    
     #--------------------------------------------------------------------------
     # Optional functions
     #--------------------------------------------------------------------------
@@ -28,15 +38,13 @@ class SLD():
             
         
     def getID(self):
-        return self.dev.query(self.getPrefix()+'*IDN?')
+        return self.dev.query(self.prefix+'*IDN?')
         
         
     #--------------------------------------------------------------------------
     # Instrument variables
     #--------------------------------------------------------------------------
-    
-    def getPrefix(self):
-        return f'CH{self.getSlotID()}:'
+
         
     def cleanResult(self,result):
         try:
@@ -49,56 +57,57 @@ class SLD():
     
     
 
-
+        
     def getWavelength(self):
-        return self.cleanResult(self.dev.query(self.getPrefix()+"L?"))
+        result = self.query(self.prefix+'L?')
+        result = self.cleanResult(result)
+        return result
     
     
    
     
     
     def setPower(self,value):
-        assert isinstance(float(value),float)
-        value=float(value)
         if value < 5:
             self.setOutputState(False)
         elif 5<=value<10 :
             if self.getOutputState() is False :
                 self.setOutputState(True)
-            self.dev.write(self.getPrefix()+'P=LOW')
+            self.write(self.prefix+'P=LOW')
+            self.query('*OPC?')
         else :
             if self.getOutputState() is False :
                 self.setOutputState(True)
-            self.dev.write(self.getPrefix()+'P=HIGH')        
+            self.write(self.prefix+'P=HIGH')
+            self.query('*OPC?')   
+            
+            
         
     def getPower(self):
-        ans=self.cleanResult(self.dev.query(self.getPrefix()+"P?"))
-        if ans == 'Disabled':
+        result = self.query(self.prefix+'P?')
+        result = self.cleanResult(result)
+        if result == 'Disabled':
             return 0
-        elif ans == 'HIGH':
+        elif result == 'HIGH':
             return 10
-        elif ans == 'LOW' :
+        elif result == 'LOW' :
             return 5
     
     
   
     
     
-    
     def setOutputState(self,state):
-        assert isinstance(state,bool)
         if state is True :
-            self.dev.write(self.getPrefix()+"ENABLE")
+            self.write(self.prefix+"ENABLE")
         else :
-            self.dev.write(self.getPrefix()+"DISABLE")
+            self.write(self.prefix+"DISABLE")
+        self.query('*OPC?')
         
     def getOutputState(self):
-        state=self.cleanResult(self.dev.query(self.getPrefix()+"ENABLE?"))
-        if state == 'Enabled' :
-            return True
-        else :
-            return False
+        result = self.query(self.prefix+'ENABLE?')
+        result = self.cleanResult(result)
+        return result == 'ENABLED'
     
-        
 
     

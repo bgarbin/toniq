@@ -10,27 +10,30 @@ import visa
 
 
 ADDRESS = 'ASRL4::INSTR'
-CALIBPATH_TIC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TIC_calib'
-CALIBPATH_TAC = r'C:\Users\qchat\Documents\GitHub\local_config\NSR1_TAC_calib'
 
+modules_dict = {'nsr1':NSR1}
 
 class Device():
     
-    def __init__(self,address=ADDRESS,
-                 calibpath_tic=CALIBPATH_TIC,
-                 calibpath_tac=CALIBPATH_TAC):
+    def __init__(self,address=ADDRESS,**kwargs):
         
         self.BAUDRATE = 115200
-        self.TIMEOUT = 1000 #ms
         
         # Initialisation
         rm = visa.ResourceManager()
         self.controller = rm.open_resource(address)
-        self.controller.timeout = self.TIMEOUT
+        self.controller.baud_rate = self.BAUDRATE
         
-        # Subdevices
-        self.tic = NSR1(self,1,'tic',calibpath_tic)
-        self.tac = NSR1(self,2,'tac',calibpath_tac)
+        # Submodules
+        prefix = 'slot'
+        for key in kwargs.keys():
+            if key.startswith(prefix):
+                slot_num = key[len(prefix):]
+                module = modules_dict[ kwargs[key].split(',')[0].strip() ]
+                name = kwargs[key].split(',')[1].strip()
+                calibpath = kwargs[key].split(',')[2].strip()
+                setattr(self,name,module(self,slot_num,name,calibpath))
+        
         
     def close(self):
         try : self.controller.close()
@@ -38,10 +41,7 @@ class Device():
 
     def query(self,command):
         result = self.controller.query(command)
-        result = result.strip('\n')
-        if '=' in result : result = result.split('=')[1]
-        try : result = float(result)
-        except: pass
+        result = result.strip('\r\n')
         return result
     
     def write(self,command):
