@@ -11,11 +11,13 @@ from optparse import OptionParser
 import sys
 import time
 
+ADDRESS = 'GPIB::2::INSTR'
+
 class Device():
-        def __init__(self,query=None,command=None,smart_relock=None,port=None,setpoint=None,auto_lock=None,lock=None,unlock=None):
+        def __init__(self,address=ADDRESS,query=None,command=None,smart_relock=None,port=None,setpoint=None,auto_lock=None,lock=None,unlock=None):
             
             rm = v.ResourceManager('@py')
-            self.PID = rm.get_instrument('GPIB::2::INSTR')
+            self.PID = rm.get_instrument(address)
             self.PID.write('CEOI ON')
             self.PID.write('EOIX ON')
             
@@ -97,8 +99,9 @@ if __name__ == '__main__':
     parser.add_option("-u", "--unlock", type="str", dest="unlock", default=None, help="Unlock" )
     parser.add_option("-i", "--port", type="str", dest="port", default='5', help="Port for the PID freme to apply the command to" )
     parser.add_option("-s", "--setpoint", type="str", dest="setpoint", default=None, help="Setpoint value to be used" )
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set gpib address to use for the communication" )
     parser.add_option("-t", "--testout", action = "store_true", dest="testout", default=False, help="Test the output voltage and re-lock if needed" )
     (options, args) = parser.parse_args()
     
     ### Start the talker ###
-    Device(query=options.que,command=options.com,smart_relock=options.testout,port=options.port,setpoint=options.setpoint,auto_lock=options.autolock,lock=options.lock,unlock=options.unlock)
+    Device(address=options.address,query=options.que,command=options.com,smart_relock=options.testout,port=options.port,setpoint=options.setpoint,auto_lock=options.autolock,lock=options.lock,unlock=options.unlock)

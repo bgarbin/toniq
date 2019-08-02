@@ -6,15 +6,15 @@ import sys
 import time
 from numpy import fromstring,int8,int16,float64,sign
 
-IP = '169.254.166.210'
+ADDRESS = '169.254.166.210'
 
 conv = ['T0','T1','A','B','C','D','E','F','G','H']
 conv2 = ['T0','AB','CD','EF','GH']
 
 class Device():
-        def __init__(self,channel= None, query=None,command=None, host=IP, delay= None, voltage = None, trigger = None, polarity = None, level= None, disp = None):
+        def __init__(self,channel= None, query=None,command=None, address=ADDRESS, delay= None, voltage = None, trigger = None, polarity = None, level= None, disp = None):
             ### Initiate communication ###
-            self.scope = v.Instrument(host)
+            self.scope = v.Instrument(address)
        
             if query:
                 print('\nAnswer to query:',query)
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser.add_option("-f", "--freq", type="str", dest="freq", default=None, help="Set the trigger (Hz)")
     parser.add_option("-p", "--polarity", type="str", dest="pol", default=None, help="Set the level polarity if 1, then up if 0, then down")
     parser.add_option("-l", "--level", type="str", dest="level", default=None, help="Set the level")
-    parser.add_option("-i", "--ipadd", type="string", dest="ipadd", default=IP, help="Set ip address" )
+    parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set ip address" )
     # parser.add_option("-b", "--burst",type="str", dest="level",deafult= None, help="burst options")
     (options, args) = parser.parse_args()
 
@@ -156,4 +156,4 @@ if __name__ == '__main__':
     
 
     ### Start the talker ###
-    Device(channel= chan, query=options.que,command=options.com,host=options.ipadd,delay=options.delay,voltage= options.voltage, trigger = options.freq, polarity= options.pol,level = options.level, disp = options.disp)
+    Device(channel= chan, query=options.que,command=options.com,address=options.address,delay=options.delay,voltage= options.voltage, trigger = options.freq, polarity= options.pol,level = options.level, disp = options.disp)

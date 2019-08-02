@@ -7,13 +7,14 @@ from optparse import OptionParser
 import subprocess
 from numpy import savetxt
 
-IP="169.254.166.207"
+ADDRESS = "169.254.166.207"
+PORT    = 10001
 
 class Device():
-    def __init__(self, filename=None,query=None,command=None,host=IP,FORCE=False,SAVE=True,trigger=False):
+    def __init__(self, filename=None,query=None,command=None,address=ADDRESS,FORCE=False,SAVE=True,trigger=False):
         ### Establish the connection ###
         self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, 10001))
+        self.sock.connect((address, PORT))
         self.send('OPEN "anonymous"')
         ans = self.recv(1024)
         if not ans=='AUTHENTICATE CRAM-MD5.':
@@ -106,9 +107,9 @@ if __name__=="__main__":
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use." )
     parser.add_option("-o", "--filename", type="string", dest="filename", default=None, help="Set the name of the output file" )
     parser.add_option("-F", "--force", type="string", dest="force", default=None, help="Allows overwriting file" )
-    parser.add_option("-i", "--ip_address", type="string", dest="ip_address", default=IP, help="Set the ip address to establish the communication with" )
+    parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set the ip address to establish the communication with" )
     parser.add_option("-t", "--trigger", action = "store_true", dest ="trigger", default=False, help="Make sure the instrument trigger once and finishes sweeping before acquiring the data")
     (options, args) = parser.parse_args()
 
-    Device(query=options.que,command=options.com,filename=options.filename,FORCE=options.force,host=options.ip_address,trigger=options.trigger)
+    Device(query=options.que,command=options.com,filename=options.filename,FORCE=options.force,address=options.address,trigger=options.trigger)
 

@@ -88,7 +88,7 @@ class Device():
 
 
     def setIntensity(self,value):
-        self.write("I=%f"%value)
+        self.write("I={float(value)}")
         if value == 0 : self.setOutput(False)
         else :
             if self.getOutput() is False : self.setOutput(True)
@@ -112,3 +112,13 @@ class Device():
         if ans == 'DISABLED' : return False
         else : return True
         
+        
+        
+        
+    def getMotorSpeed(self):
+        return self.query("MOTOR_SPEED?")   
+ 
+    
+    def setMotorSpeed(self,value):  # from 1 to 100 nm/s
+        self.write("MOTOR_SPEED={float(value)}")
+        self.wait()

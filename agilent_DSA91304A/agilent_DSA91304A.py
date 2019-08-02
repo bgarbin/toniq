@@ -20,52 +20,24 @@ from optparse import OptionParser
 import subprocess
 import time
 
-IP        = "169.254.108.195"
+ADDRESS   = "169.254.108.195"
 PORT      = 5025                            # agilent requirement listening port
 PORT_TYPE = 'inst0'                           # agilent ethernet requirement
 
 class Device():
-    def __init__(self,channel=None,filename=None,host=IP,INTERACTIVE=True,MEAS=None,IP=IP):
-        #try:
-        print(host)
-        self.sock = vxi.Instrument(host)
+    def __init__(self,address=ADDRESS):
+        
+        try:
+            self.sock = vxi.Instrument(address)
+        except:
+            print("Wrong IP, Listening port or bad connection \nCheck cables first")
+            sys.exit()
+        
         self.sock.write(':WAVeform:TYPE RAW')
         self.sock.write(':WAVEFORM:BYTEORDER LSBFirst')
         self.sock.write(':TIMEBASE:MODE MAIN')
         self.sock.write(':WAV:SEGM:ALL ON')
-    #except:
-            #print("Wrong IP, Listening port or bad connection \nCheck cables first")
-            #sys.exit()
-            
-        if INTERACTIVE:
-            pass
-        else:
-            if channel is None:
-                print('You must provide at least one channel')
-                sys.exit()
-            if filename is None:
-                print('WARNING: filename is set to DEFAULT')
-                filename = 'DEFAULT'
-                
-            t = time.time()
-            
-            ### Acquire ###
-            if MEAS:
-                for i in range(MEAS):
-                    self.stop()
-                    print(str(i+1))
-                    self.get_data(chan=channel[0],filename=str(i+1),PLOT=False,typ='BYTE',SAVE=True,LOG=False)
-                    self.run()
-                    time.sleep(0.050)
-            else:
-                for i in range(len(channel)):
-                    self.stop()
-                    print('trying to get channel',channel[i])
-                    self.get_data(chan=channel[i],filename=filename,PLOT=False,typ='BYTE',SAVE=True)
-            
-            print('Measurment time', time.time() - t)
-            
-            self.run()
+
         
     def get_data(self,chan='CHAN1',filename='test_save_file_',PLOT=False,typ='BYTE',SAVE=False,LOG=True):
         self.sock.write(':WAVEFORM:SOURCE ' + chan)
@@ -117,37 +89,21 @@ class Device():
         self.sock.local()
         self.sock.write('*RST')
 
-    def cmd(self,string):
-        "Take a sting and write it to the oscillo"
+    def write(self,string):
+        "Take a sting and write it to the scope"
         self.sock.write(string)            
     def run(self):
         self.sock.write(':RUN')
     def stop(self):
         self.sock.write(':STOP')
-    def disconnect(self):
-        self.sock.close()
+    def close(self):
+        #self.sock.close()
+        pass
         
     def idn(self):
-        self.cmd("*IDN?")  
-        print("Scope identifies as: ", resp())
+        self.write("*IDN?")
+        print(self.sock.read())
 
-
-class optimized_for_TV():
-    def __init__(self,chan='CHAN1',typ='BYTE'):
-        try:
-            self.sock = vxi.Instrument('169.254.108.195')
-            self.sock.write(':WAVeform:TYPE RAW')
-            self.sock.write(':WAVEFORM:BYTEORDER LSBFirst')
-            self.sock.write(':TIMEBASE:MODE MAIN')
-            self.sock.write(':WAVEFORM:SOURCE ' + chan)
-            self.sock.write(':WAVEFORM:FORMAT ' + typ)
-        except:
-            print("Wrong IP, Listening port or bad connection \n Check cables first")
-            
-    def get_data(self):
-        self.sock.write(':WAV:DATA?')
-        self.data = self.sock.read_raw()[10:]
-        return numpy.fromstring(self.data, dtype=numpy.int8)
 
 if __name__ == "__main__":
     
@@ -174,7 +130,7 @@ if __name__ == "__main__":
     parser = OptionParser(usage)
     parser.add_option("-o", "--filename", type="string", dest="filename", default='DEFAULT', help="Set the name of the output file" )
     parser.add_option("-m", "--measure", type="int", dest="measure", default=None, help="Set measurment number" )
-    parser.add_option("-i", "--ipadd", type="string", dest="ipadd", default=IP, help="Set ip address" )
+    parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set ip address" )
     (options, args) = parser.parse_args()
     
     ### Compute channels to acquire ###
@@ -206,10 +162,36 @@ if __name__ == "__main__":
                 print('\nPlease provide an existing channel (integer 1->4)\n')
                 sys.exit()
             chan.append('CHAN' + str(args[i]))
-    print(  chan)
+    print(chan)
     
     ### Initiate the class ###
-    Device(channel=chan,host=options.ipadd,filename=options.filename,MEAS=options.measure,INTERACTIVE=False)
+    I = Device(address=options.address)
     
-
+    if chan is None:
+        print('You must provide at least one channel')
+        sys.exit()
+    if options.filename is None:
+        print('WARNING: filename is set to DEFAULT')
+        options.filename = 'DEFAULT'
+        
+    t = time.time()
     
+    ### Acquire ###
+    if options.MEAS:
+        for i in range(options.MEAS):
+            I.stop()
+            print(str(i+1))
+            I.get_data(chan=chan[0],filename=str(i+1),PLOT=False,typ='BYTE',SAVE=True,LOG=False)
+            I.run()
+            time.sleep(0.050)
+    else:
+        for i in range(len(chan)):
+            I.stop()
+            print('trying to get channel',chan[i])
+            I.get_data(chan=chan[i],filename=options.filename,PLOT=False,typ='BYTE',SAVE=True)
+    
+    print('Measurment time', time.time() - t)
+    
+    I.run()
+    I.close()
+    sys.exit()
