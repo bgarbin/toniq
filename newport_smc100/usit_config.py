@@ -11,9 +11,7 @@ def configure(devDriver,devUsit):
                         setFunction=devDriver.setPosition,
                         getFunction=devDriver.getPosition)
     
-    devUsit.addAction('goHome',
-                      function=devDriver.goHome)
-        
+
     
     
     
