@@ -45,8 +45,8 @@ if __name__ == '__main__':
     usage = """usage: %prog [options] arg
                
                EXAMPLES:
-
-
+                   set_srsDS345 -f 1.4e6 -a 1.1VP -o 0.1 -p 0.1
+                   set the frequency to 1.4 MHz with an amplitude of 1.1 V, an offset of 100 mV and a phase of 1 degree.
                """
     parser = OptionParser(usage)
     parser.add_option("-c", "--command", type="str", dest="command", default=None, help="Set the command to use." )
