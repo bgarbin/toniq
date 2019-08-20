@@ -55,8 +55,9 @@ if __name__ == '__main__':
     parser.add_option("-a", "--amplitude", type="str", dest="amplitude", default=None, help="Set the amplitude. Note: The units can be VP(Vpp), VR (Vrms), or DB (dBm)." )
     parser.add_option("-f", "--frequency", type="str", dest="frequency", default=None, help="Set the frequency." )
     parser.add_option("-p", "--phase", type="str", dest="phase", default=None, help="Set the phase." )
-    parser.add_option("-i", "--address", type="str", dest="address", default=[NAME,PAD], help="Set the GPIB address to use to communicate." )
+    parser.add_option("-i", "--address", type='str', dest="address", default='[NAME,PAD]', help="Set the GPIB address to use to communicate." )
     (options, args) = parser.parse_args()
+    options.address = eval(options.address)
     
     ### Start the talker ###
     I = Device(address=options.address)

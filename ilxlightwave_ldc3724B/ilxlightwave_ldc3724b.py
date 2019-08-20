@@ -6,7 +6,9 @@ Created on Wed Apr  3 20:06:08 2019
 @author: quentin.chateiller
 """
 import visa
-import time 
+import time
+from optparse import OptionParser
+import sys,os
 
 ADDRESS = 'GPIB0::26::INSTR'
 
@@ -307,4 +309,41 @@ class TEC():
         
         
         
+if __name__ == '__main__':
+
+    usage = """usage: %prog [options] arg
+               
+               EXAMPLES:
+                   
+                   
+               """
+    parser = OptionParser(usage)
+    parser.add_option("-c", "--command", type="str", dest="command", default=None, help="Set the command to use." )
+    parser.add_option("-q", "--query", type="str", dest="query", default=None, help="Set the query to use." )
+    parser.add_option("-a", "--current", type="str", dest="current", default=None, help="Set the amplitude. Note: The units can be VP(Vpp), VR (Vrms), or DB (dBm)." )
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the GPIB address to use to communicate." )
+    (options, args) = parser.parse_args()
+    
+    ### Start the talker ###
+    I = Device(address=options.address)
+    if options.query:
+        print('\nAnswer to query:',options.query)
+        rep = I.query(options.query)
+        print(rep,'\n')
+        try: sys.exit()
+        except: os._exit(1)
+    elif options.command:
+        print('\nExecuting command',options.command)
+        I.write(options.command)
+        print('\n')
+        try: sys.exit()
+        except: os._exit(1)
+    
+    if options.current:
+        I.las.setCurrent(options.current)
+
+    
+    try: sys.exit()
+    except: os._exit(1)
+
         
