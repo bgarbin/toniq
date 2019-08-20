@@ -79,5 +79,5 @@ if __name__ == '__main__':
     if options.phase:
         I.phase(options.phase)
     
-    I.close()
+    #I.close()
     sys.exit()

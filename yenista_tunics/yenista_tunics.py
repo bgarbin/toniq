@@ -34,7 +34,10 @@ class Device():
     
     def write(self,command):
         self.controller.write(command)
-        
+    
+    def read(self):
+        return self.controller.read()
+    
     def wait(self):
         self.getID() # Not fantastic but programming interface really basic
         

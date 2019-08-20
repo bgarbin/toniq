@@ -12,7 +12,7 @@ _CONFIGPATH       = os.path.dirname(_LIBPATH)
 #userFolderPath    = os.path.expanduser('~')
 localFolderPath     = os.path.join(_CONFIGPATH,'toniq_local_config')
 exampleDevindexPath = os.path.join(_LIBPATH,'More/local_config_example/devices_index.ini')
-devindexPath        = os.path.join(localConfigPath,'devices_index.ini')
+devindexPath        = os.path.join(localFolderPath,'devices_index.ini')
 
 
 def save_config(config):
@@ -57,7 +57,7 @@ def remove_instrument():
     print(f'\nInstrument {section_name} successfully remove from {devindexPath}')
     
 def getConfig():
-    os.chdir(localConfigPath)
+    os.chdir(localFolderPath)
     config = configparser.ConfigParser()
     config.read(devindexPath)
     return config
