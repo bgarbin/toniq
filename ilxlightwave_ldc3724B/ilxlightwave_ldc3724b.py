@@ -7,8 +7,6 @@ Created on Wed Apr  3 20:06:08 2019
 """
 import visa
 import time
-from optparse import OptionParser
-import sys,os
 
 ADDRESS = 'GPIB0::26::INSTR'
 
@@ -20,8 +18,9 @@ class Device():
         
         # Instantiation
         rm = visa.ResourceManager()
-        self.controller = rm.open_resource(address)
+        self.controller = rm.get_instrument(address)
         self.controller.timeout = self.TIMEOUT
+        #self.controller.query_delay = 0.05
         
         # Initialisation
         self.write('*CLS')      # Clear status registers
@@ -36,7 +35,9 @@ class Device():
         except : pass
 
     def query(self,command):
-        result = self.controller.query(command)
+        result = self.write(command)
+        #time.sleep(0.01)     # 50 ms delay to allow proper behavior from NI_GPIB_USB devices
+        result = self.controller.read()
         result = result.strip('\n')
         if '=' in result : result = result.split('=')[1]
         try : result = float(result)
@@ -45,12 +46,17 @@ class Device():
     
     def write(self,command):
         self.controller.write(command)
+        time.sleep(0.01)
         
-        
-        
-        
-        
-        
+    def read_loop(self):
+        ti = time.time()
+        while True:
+            if (time.time()-ti) > self.TIMEOUT:
+                ti = time.time()
+                
+            else:
+                break
+        return 
         
     def getID(self):
         return self.query('*IDN?')
@@ -72,7 +78,7 @@ class LAS():
     
     def getCurrent(self):
         self.dev.write('LAS:DIS:LDI')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         return float(self.dev.query('LAS:LDI?'))
 
     def getCurrentSetpoint(self):
@@ -83,7 +89,7 @@ class LAS():
         value = float(value)
         self.dev.write(f'LAS:LDI {value}')
         self.dev.write('LAS:DIS:SET')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -101,7 +107,7 @@ class LAS():
         value = float(value)
         self.dev.write(f'LAS:MDP {value}')
         self.dev.write('LAS:DIS:SET')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -113,7 +119,7 @@ class LAS():
 
     def getPower(self):
         self.dev.write('LAS:DIS:MDP')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         return float(self.dev.query('LAS:MDP?'))
 
     def getPowerSetpoint(self):
@@ -125,7 +131,7 @@ class LAS():
     def setEnabled(self,value):
         assert isinstance(value,bool)
         self.dev.write(f'LAS:OUT {int(value)}')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value is True :
             mode = self.dev.query('LAS:MODE?')
             if mode.startswith('I'):
@@ -163,7 +169,7 @@ class LAS():
         enabledMode = self.isEnabled()
         if currMode != mode :
             self.dev.write(f'LAS:MODE:{mode}')
-            self.dev.query('*OPC?')
+            #self.dev.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):
@@ -189,7 +195,7 @@ class TEC():
 
     def getResistance(self):
         self.write('TEC:DIS:R')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         return float(self.query('TEC:R?'))
 
 
@@ -198,7 +204,7 @@ class TEC():
         assert isinstance(int(value),int)
         value = int(value)
         self.write(f'TEC:GAIN {value}')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         
     def getGain(self):
         return int(float(self.query('TEC:GAIN?')))
@@ -208,7 +214,7 @@ class TEC():
     
     def getCurrent(self):
         self.dev.write('TEC:DIS:ITE')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         return float(self.dev.query('TEC:ITE?'))
 
     def getCurrentSetpoint(self):
@@ -219,7 +225,7 @@ class TEC():
         value = float(value)
         self.dev.write(f'TEC:ITE {value}')
         self.dev.write('TEC:DIS:SET')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -237,7 +243,7 @@ class TEC():
         value = float(value)
         self.dev.write(f'TEC:T {value}')
         self.dev.write('TEC:DIS:SET')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -249,7 +255,7 @@ class TEC():
 
     def getTemperature(self):
         self.dev.write('TEC:DIS:T')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         return float(self.dev.query('TEC:T?'))
 
     def getTemperatureSetpoint(self):
@@ -262,7 +268,7 @@ class TEC():
     def setEnabled(self,value):
         assert isinstance(value,bool)
         self.dev.write(f'TEC:OUT {int(value)}')
-        self.dev.query('*OPC?')
+        #self.dev.query('*OPC?')
         if value is True :
             mode = self.dev.query('TEC:MODE?')
             if mode.startswith('I'):
@@ -301,7 +307,7 @@ class TEC():
         enabledMode = self.isEnabled()
         if currMode != mode :
             self.dev.write(f'TEC:MODE:{mode}')
-            self.dev.query('*OPC?')
+            #self.dev.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):
@@ -310,17 +316,21 @@ class TEC():
         
         
 if __name__ == '__main__':
-
+    from optparse import OptionParser
+    import sys,os
+    
     usage = """usage: %prog [options] arg
                
                EXAMPLES:
-                   
-                   
+                   set_ilxlightwaveldc3724 -i GPIB0::1::INSTR -a 30 -t 20.1
+                   set the pump current to 30 mA and the temperature to 20.1 degree celcius
                """
     parser = OptionParser(usage)
     parser.add_option("-c", "--command", type="str", dest="command", default=None, help="Set the command to use." )
     parser.add_option("-q", "--query", type="str", dest="query", default=None, help="Set the query to use." )
-    parser.add_option("-a", "--current", type="str", dest="current", default=None, help="Set the amplitude. Note: The units can be VP(Vpp), VR (Vrms), or DB (dBm)." )
+    parser.add_option("-a", "--current", type="str", dest="current", default=None, help="Set the pump current in mA." )
+    parser.add_option("-p", "--power", type="str", dest="power", default=None, help="Set the pump power in ?." )
+    parser.add_option("-t", "--temperature", type="str", dest="temperature", default=None, help="Set the locking temperature." )
     parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the GPIB address to use to communicate." )
     (options, args) = parser.parse_args()
     
@@ -341,7 +351,13 @@ if __name__ == '__main__':
     
     if options.current:
         I.las.setCurrent(options.current)
-
+    if options.power:
+        # to sort out what power does and the unit
+        #I.las.setPower(options.power)
+        pass
+    if options.temperature:
+        if (eval(options.temperature) > 18) and (eval(options.temperature) < 25):
+            I.tec.setTemperature(options.temperature)
     
     try: sys.exit()
     except: os._exit(1)

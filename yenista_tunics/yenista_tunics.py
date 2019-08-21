@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr  3 20:06:08 2019
@@ -91,7 +92,7 @@ class Device():
 
 
     def setIntensity(self,value):
-        self.write("I={float(value)}")
+        self.write(f"I={float(value)}")
         if value == 0 : self.setOutput(False)
         else :
             if self.getOutput() is False : self.setOutput(True)
@@ -125,3 +126,58 @@ class Device():
     def setMotorSpeed(self,value):  # from 1 to 100 nm/s
         self.write("MOTOR_SPEED={float(value)}")
         self.wait()
+
+
+   
+if __name__ == '__main__':
+    from optparse import OptionParser
+    import sys,os
+    
+    usage = """usage: %prog [options] arg
+               
+               EXAMPLES:
+                   set_yenistatunics -i GPIB0::1::INSTR -a 30 -w 1550
+                   set the pump current to 30 mA and the and the wavelength to 1550
+                   
+                   Note that you might provide only on out of current and power at a time (same thing applies to frequency and wavelength)
+               """
+    parser = OptionParser(usage)
+    parser.add_option("-c", "--command", type="str", dest="command", default=None, help="Set the command to use." )
+    parser.add_option("-q", "--query", type="str", dest="query", default=None, help="Set the query to use." )
+    parser.add_option("-a", "--current", type="str", dest="current", default=None, help="Set the pump current in mA." )
+    parser.add_option("-p", "--power", type="str", dest="power", default=None, help="Set the output power in mW." )
+    parser.add_option("-f", "--frequency", type="str", dest="frequency", default=None, help="Set the operating frequency in GHz." )
+    parser.add_option("-w", "--wavelength", type="str", dest="wavelength", default=None, help="Set the operating wavelength in nm." )
+    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the GPIB address to use to communicate." )
+    (options, args) = parser.parse_args()
+    
+    ### Start the talker ###
+    I = Device(address=options.address)
+    if options.query:
+        print('\nAnswer to query:',options.query)
+        rep = I.query(options.query)
+        print(rep,'\n')
+        try: sys.exit()
+        except: os._exit(1)
+    elif options.command:
+        print('\nExecuting command',options.command)
+        I.write(options.command)
+        print('\n')
+        try: sys.exit()
+        except: os._exit(1)
+    
+    assert not(options.current and options.power), "Please provide EITHER current OR power"
+    if options.current:
+        I.setIntensity(options.current)
+    elif options.power:
+        I.setPower(options.power)
+    assert not(options.wavelength and options.frequency), "Please provide EITHER wavelength OR frequency"
+    if options.wavelength:
+        I.setWavelength(options.wavelength)
+    elif options.frequency:
+        I.setFrequency(options.frequency)
+
+    try: sys.exit()
+    except: os._exit(1)
+
+        
