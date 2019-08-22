@@ -150,7 +150,7 @@ class Device():
             
             if LOG:
                 self.preamb = self.get_log_data(chan)             # Save scope configuration
-                f = open(filename + '_lecroy' + chan + '.log','w')
+                f = open(temp_filename + '.log','w')
                 f.write(self.preamb)
                 f.close()
             print(chan + ' saved')

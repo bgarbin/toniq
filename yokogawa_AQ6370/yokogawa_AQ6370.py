@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import socket
-import sys
+import sys,os
 import time
 from optparse import OptionParser
 import subprocess
@@ -46,7 +46,7 @@ class Device():
             ### TO SAVE ###
             if SAVE:
                 temp_filename = filename + '_AQ6370.txt'
-                temp = subprocess.getoutput('ls').splitlines()               # if file exist => exit
+                temp = os.listdir()               # if file exist => exit
                 for i in range(len(temp)):
                     if temp[i] == temp_filename and not(FORCE):
                         print('\nFile ', temp_filename, ' already exists, change filename, remove old file or use -F option to overwrite\n')

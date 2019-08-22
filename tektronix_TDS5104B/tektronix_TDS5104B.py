@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import vxi11 as v
-import sys
+import sys,os
 import time
 from optparse import OptionParser
 import subprocess
@@ -55,19 +55,20 @@ class Device():
         self.data = self.data[7:-1]     # to remove last shitty point
         ### TO SAVE ###
         if SAVE:
-            temp = subprocess.getoutput('ls').splitlines()                           # if file exist => exit
+            temp_filename = filename + '_TDS5104B' + chan
+            temp = os.listdir()                           # if file exist => exit
             for i in range(len(temp)):
-                temp_filename = filename + '_TDS5104B' + chan
+                
                 if temp[i] == temp_filename:
                     print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
                     sys.exit()
             
-            f = open(filename + '_TDS5104B' + chan,'w')                   # Save data
+            f = open(temp_filename,'wb')                   # Save data
             f.write(self.data)
             f.close()
             if LOG:
                 self.preamb = self.get_log_data()             # Save scope configuration
-                f = open(filename + '_TDS5104B' + chan + '.log','w')
+                f = open(temp_filename + '.log','w')
                 f.write(self.preamb)
                 f.close()
             print(chan + ' saved')

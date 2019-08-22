@@ -167,9 +167,9 @@ if __name__ == '__main__':
         except: os._exit(1)
     
     assert not(options.current and options.power), "Please provide EITHER current OR power"
-    if options.current:
+    if options.current or (options.current==0):
         I.setIntensity(options.current)
-    elif options.power:
+    elif options.power or (options.power==0):
         I.setPower(options.power)
     assert not(options.wavelength and options.frequency), "Please provide EITHER wavelength OR frequency"
     if options.wavelength:

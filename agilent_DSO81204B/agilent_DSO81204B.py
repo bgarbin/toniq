@@ -12,7 +12,7 @@ Module has been written by Bruno Garbin around Jun 2016.
 import vxi11 as vxi
 import numpy
 from pylab import plot,subplot,title,xlim,clf
-import sys
+import sys,os
 from optparse import OptionParser
 import subprocess
 import time
@@ -51,19 +51,19 @@ class Device():
             
         ### TO SAVE ###
         if SAVE:
-            temp = subprocess.getoutput('ls').splitlines()                           # if file exist => exit
+            temp_filename = filename + '_DSA' + chan
+            temp = os.listdir()                           # if file exist => exit
             for i in range(len(temp)):
-                temp_filename = filename + '_DSA' + chan
                 if temp[i] == temp_filename:
                     print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
                     sys.exit()
             
-            f = open(filename + '_DSA' + chan,'w')                   # Save data
+            f = open(temp_filename,'wb')                   # Save data
             f.write(self.data)
             f.close()
             if LOG:
                 self.preamb = self.get_log_data(chan=chan)             # Save scope configuration
-                f = open(filename + '_DSA' + chan + '.log','w')
+                f = open(temp_filename + '.log','w')
                 f.write(self.preamb)
                 f.close()
             print(chan + ' saved')

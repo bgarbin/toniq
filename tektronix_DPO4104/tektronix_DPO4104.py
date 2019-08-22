@@ -2,7 +2,7 @@
 
 import vxi11 as v
 from optparse import OptionParser
-import sys
+import sys,os
 import subprocess
 import time
 
@@ -61,19 +61,19 @@ class Device():
 
         ### TO SAVE ###
         if SAVE:
-            temp = subprocess.getoutput('ls').splitlines()                           # if file exist => exit
+            temp_filename = filename + '_DPO4104' + chan
+            temp = os.listdir()                           # if file exist => exit
             for i in range(len(temp)):
-                temp_filename = filename + '_DPO4104' + chan
                 if temp[i] == temp_filename:
                     print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
                     sys.exit()
             
-            f = open(filename + '_DPO4104' + chan,'w')                   # Save data
+            f = open(temp_filename,'wb')                   # Save data
             f.write(self.data)
             f.close()
             if LOG:
                 self.preamb = self.get_log_data()             # Save scope configuration
-                f = open(filename + '_DPO4104' + chan + '.log','w')
+                f = open(temp_filename + '.log','w')
                 f.write(self.preamb)
                 f.close()
             print(chan + ' saved')

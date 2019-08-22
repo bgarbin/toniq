@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from optparse import OptionParser
-import sys
+import sys,os
 import time
 import numpy as np
 import visa as v
@@ -19,7 +19,7 @@ class Device():
 
     def save_data(self,filename,FORCE=None):
         temp_filename = filename + '_ANDO'
-        temp = subprocess.getoutput('ls').splitlines()              # if file exist => exit
+        temp = os.listdir()              # if file exist => exit
         for i in range(len(temp)):
             if temp[i] == temp_filename and not(FORCE):
                 print('\nFile ', temp_filename, ' already exists, change filename, remove old file or use -F option to overwrite\n')

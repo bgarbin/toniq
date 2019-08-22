@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 from optparse import OptionParser
-import sys
-import os
+import sys,os
 import time
 from numpy import fromstring,int8,int16,float64,sign,savetxt
 import connector
