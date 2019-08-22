@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
+"""
+Supported instruments (iddentified):
+- Wavemaster 8620A
+- Waverunner 104Xi
+- 
+"""
 
 import vxi11 as v
 from optparse import OptionParser
-import sys
+import sys,os
 import subprocess
 import time
 from numpy import fromstring,int8,int16,float64,sign
@@ -10,7 +16,7 @@ from numpy import fromstring,int8,int16,float64,sign
 ADDRESS = '169.254.166.206'
 
 class Device():
-    def __init__(self,address=ADDRESS,channel=None,encoding='BYTE',spe_mode=None,filename=None, FACT=8.,query=None,command=None,FORCE=False,PRINT=False,chan_spe=None):
+    def __init__(self,address=ADDRESS,channel=None,encoding='BYTE',spe_mode=None,filename=None, FACT=8.,query=None,command=None,FORCE=False,PRINT=False,chan_spe=None,trigger=False):
         if encoding=='BYTE':dtype=int8;NUM=256;LIM=217.          # 15% less than the maximal number possible
         elif encoding=='WORD':dtype=int16;NUM=65536;LIM=55700.   # 15% less than the maximal number possible
         
@@ -31,15 +37,12 @@ class Device():
             self.scope.write(command)
             print('\n')
             sys.exit()
-            
+        
         self.prev_trigg_mode = self.query('TRMD?')
         print(self.prev_trigg_mode)
         
         if filename:
-            self.single()
-            while self.query('TRMD?') != 'TRMD STOP':
-                time.sleep(0.05)
-                pass
+            if trigger: self.single()
                 
             ### Check if channels are active ###
             for i in range(len(channel)):
@@ -84,9 +87,6 @@ class Device():
                             #####################################################
                             
                             self.single()
-                            while self.query('TRMD?') != 'TRMD STOP':
-                                time.sleep(0.05)
-                                pass
                             print('Optimisation loop index:', k,spe_mode)
                             
                             ############### Checking part #######################
@@ -104,7 +104,7 @@ class Device():
                                 temp2 = 'MAX,'
                                 temp3 = stri.find(temp2)
                                 temp4 = stri.find(' V')
-                                ma    = eval(stri[temp3+len(temp2):temp4])
+                                ma    = eval(stri[temp3+len(temp2):temp4])  
                                 if mi<R_MI or ma>R_MA:                        #if trace out of the screen optimize again
                                     print('(SCOPE)   Min:',R_MI,' Max:',R_MA)
                                     print('(TRACE)   Min:',mi,' Max:',ma)
@@ -122,7 +122,7 @@ class Device():
             print('If you want to save, provide an output file name')
         
         ### Run the scope BACK in the previous trigger mode###
-        self.run()
+        self.previous_trigger_state()
         
     
     def query(self, cmd, nbytes=1000000):
@@ -137,14 +137,14 @@ class Device():
         print(len(self.data))
         ### TO SAVE ###
         if SAVE:
-            temp = subprocess.getoutput('ls').splitlines()                           # if file exist => exit
+            temp_filename = filename + '_lecroy' + chan
+            temp = os.listdir()                         # if file exist => exit
             for i in range(len(temp)):
-                temp_filename = filename + '_lecroy' + chan
                 if temp[i] == temp_filename and not(FORCE):
                     print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
                     sys.exit()
             
-            f = open(filename + '_lecroy' + chan,'w')                   # Save data
+            f = open(temp_filename,'wb')# Save data
             f.write(self.data)
             f.close()
             
@@ -165,15 +165,16 @@ class Device():
         self.scope.write("TRMD STOP")
     def single(self):
         self.scope.write("TRMD SINGLE")
-    def run(self):
+        while self.query('TRMD?') != 'TRMD STOP':
+            time.sleep(0.05)
+            pass
+    def previous_trigger_state(self):
         self.scope.write(self.prev_trigg_mode)
     
-    def query_data(self, chan, fname=None, force=None,):
-        ## trigger SINGLE
-        chan = str(chan)
+    def query_data(self, chan):
         self.scope.write(chan+':WF? DAT1')
         data = self.scope.read_raw()
-        return data[data.find('#')+11:-1]
+        return data[data.find(b'#')+11:-1]
 
         
 if __name__ == '__main__':
@@ -181,9 +182,16 @@ if __name__ == '__main__':
     usage = """usage: %prog [options] arg
 
                EXAMPLES:
-                   get_lecroy 1 -o filename
-               Record the first channel and create two files name filename_lecroy and filename_lecroy.log
-               
+                   get_lecroywavemaster 1 -o filename
+                   Record the first channel and create two files name filename_lecroy and filename_lecroy.log
+            
+                   get_lecroywavemaster -i 192.168.0.4 -e WORD -o test 3
+                   Same as before but record channel 3 with giving an IP address and an int16 data type
+                    
+                   get_lecroywavemaster -i 192.168.0.5 -F -t -m [10,1,2] -n 8 -o test 1,2
+                   Uses spe_mode for automatic adjustments of the vertical scale on channel 1 and 2
+                   Note: if channel is not to be acquired it won't be subjected to amplitude optimization
+                    
                
                IMPORTANT INFORMATIONS:
                     - Datas are obtained in a binary format: int8 
@@ -199,9 +207,10 @@ if __name__ == '__main__':
     parser.add_option("-o", "--filename", type="string", dest="filename", default=None, help="Set the name of the output file" )
     parser.add_option("-F", "--force",action = "store_true", dest="force", default=None, help="Allows overwriting file" )
     parser.add_option("-e", "--encoding", type="string", dest="encoding", default='BYTE', help="For mofifying the encoding format of the answer" )
-    parser.add_option("-m", "--spe_mode", type="string", dest="spe_mode", default=None, help="For allowing auto modification of the vertical gain. List of: spe_mode iteration number, all the channels to apply spe mode on. Note if no channel precized, all the channel are corrected. WARNING: if you want all the channels to correpond to the same trigger event, you need to spe_mode one channel only and to physically plug the cable in the first channel acquired (first in the list 1->4)")
-    parser.add_option("-n", "--spe_fact", type="float", dest="spe_fact", default=8., help="For setting limits of the vertical gain, units are in number of scope division. Do not overpass 9 due to a security in the code!" )
+    parser.add_option("-m", "--spe_mode", type="string", dest="spe_mode", default=None, help="For allowing auto modification of the vertical gain. List of: spe_mode iteration number, all the channels to apply spe mode to. Note if no channel specified, all the channel are corrected. WARNING: if you want all the channels to correpond to the same trigger event, you need to spe_mode one channel only and to physically plug the cable in the first channel acquired (first in the list 1->4)")
+    parser.add_option("-n", "--spe_fact", type="float", dest="spe_fact", default=8., help="For setting limits of the vertical gain, units are in number of scope divisions here. WARNING: Do not overpass 9 due to a security in the code! WARNING: the number of vertical divisions might depend on the scope (8 or 10 usually)." )
     parser.add_option("-i", "--address", type="string", dest="address", default=ADDRESS, help="Set ip address" )
+    parser.add_option("-t", "--trigger", action="store_true", dest="trigger", default=False, help="Ask the scope to trigger once before acquiring." )
     (options, args) = parser.parse_args()
     
     ### Compute channels to acquire ###
@@ -238,5 +247,5 @@ if __name__ == '__main__':
     ####################################
     
     ### Start the talker ###
-    Device(channel=chan,encoding=options.encoding,spe_mode=spe_mode,query=options.que,command=options.com,filename=options.filename,FORCE=options.force,FACT=options.spe_fact,chan_spe=chan_spe,address=options.address)
+    Device(channel=chan,encoding=options.encoding,spe_mode=spe_mode,query=options.que,command=options.com,filename=options.filename,FORCE=options.force,FACT=options.spe_fact,chan_spe=chan_spe,address=options.address,trigger=options.trigger)
     
