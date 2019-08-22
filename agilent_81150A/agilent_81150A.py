@@ -1,5 +1,4 @@
-#!/c/Python27/python.exe
-#/usr/bin/env python3
+#!/usr/bin/env python3
 
 import visa as v
 from optparse import OptionParser
@@ -7,12 +6,12 @@ import sys
 import time
 from numpy import zeros,ones,linspace
 
-ADDRESS = 'TCPIP::169.254.119.244::INSTR'
+ADDRESS = 'TCPIP::192.168.0.3::INSTR'
 
 class Device():
     def __init__(self,address=ADDRESS):
         # Instantiation
-        rm = v.ResourceManager('@py')
+        rm = v.ResourceManager()
         self.inst = rm.get_instrument(address)
     
     def amplitude(self,chan,amplitude):
