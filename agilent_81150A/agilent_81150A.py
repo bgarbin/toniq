@@ -57,13 +57,13 @@ if __name__ == '__main__':
                
                
                EXAMPLES:
-                   set_agilent_81150A -a 1 -o 1 -f 50KHZ 1,2
+                   set_agilent81150A -a 1 -o 1 -f 50KHZ 1,2
 				   set the frequency to 50 kHz, the amplitude to 1V, the offset to 1V for both channel 1 and 2
 
-                   set_agilent_81150A -p w10NS 1
+                   set_agilent81150A -p w10NS 1
                    set pulse mode to channel 1 with pulse width of 10NS (MS stands for microseconds)
 				   
-                   set_agilent_81150A -p d10 2
+                   set_agilent81150A -p d10 2
                    set pulse mode to channel 2 with duty cycle of 10 purcent
                    
                """
