@@ -14,7 +14,6 @@ CAMERA  = 'Camera1'
 ADDRESS = 'ASRL6::INSTR'
 
 class remote_Device():
-    
     def __init__(self,camera=CAMERA):
         
         self.minExpTimeAllowed = 2e-5  #s
