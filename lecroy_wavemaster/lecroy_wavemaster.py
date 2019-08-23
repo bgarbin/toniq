@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Supported instruments (iddentified):
+Supported instruments (identified):
 - Wavemaster 8620A
 - Waverunner 104Xi
-- 
+- Waverunnin 6050A
 """
 
 import vxi11 as v
