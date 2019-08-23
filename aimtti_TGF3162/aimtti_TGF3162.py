@@ -23,6 +23,9 @@ class Device():
         def offset(self,offset):
             self.write('DCOFFS '+offset)
         
+        def set_output(self, state):
+            """output on, off, normal or invert""" 
+            self.write('OUTPUT '+ state)
         def load_arb(self, chan):
             """chan: arbitrary channel to load"""
             self.write('WAVE ARB')
@@ -31,24 +34,29 @@ class Device():
             """chan is either 1 or 2"""
             self.write('CHN '+chan)
         def write_array_to_byte(self,l,ARB):
-            "Arguments: array, arbitrary waveform number to address the array to"
-            print('Seem to have difficulties on python 3 => TO CHECK')
-            a = ''.join([array(l[i]).tobytes()[:2] for i in range(len(l))])
+            """Arguments: array, arbitrary waveform number to address the array to
+            Note: ARB1 < BIN > Load data to an existing arbitrary waveform memory location ARB1. The data consists of two bytes per point with no characters between bytes or points. The point data is sent high byte first. The data block has a header which consists of the # character  followed by several ascii coded numeric characters. The first of these defines the number of ascii characters to follow and these following characters define the length of the binary data in bytes. The instrument will wait for data indefinitely If less data is sent. If more data is sent the extra is processed by the command parser which results in a command error."""
+            a = l.astype('<u2').tostring()
             temp = str(2*len(l))
-            self.write('ARB'+str(ARB)+' #'+str(len(temp))+temp+a)
+            ARB = str(ARB)
+            qry = b'ARB'+ bytes(str(ARB),'ascii') +bytes(' #','ascii')+ bytes(str(len(temp)),'ascii')+bytes(temp,'ascii')+a +b' \n'
+            self.s.send(qry)
             time.sleep(0.2)
         
         def write(self,query):
-            self.s.send(query+'\n')
+            self.s.send((query+'\n').encode())
         def read(self):
-            rep = self.s.recv(1000)
+            rep = self.s.recv(1000).decode()
             return rep
+        def query(self, qry):
+            self.write(qry)
+            time.sleep(0.2)
+            return self.read()
+        def idn(self):
+            self.query('*IDN?')
         def close(self):
             pass
-        def idn(self):
-            self.inst.write('*IDN?')
-            self.read()
-            
+        
             
 if __name__ == '__main__':
 
@@ -60,6 +68,9 @@ if __name__ == '__main__':
                    Note that both lines are equivalent
                    
                    Set the frequency to 80MHz and the power to 2Vpp.
+                   
+                   Note: Arbitrary waveform available only using a python terminal (for now)
+                   
                """
                
     parser = OptionParser(usage)
