@@ -8,12 +8,12 @@ import visa as v
 import subprocess
 from numpy import savetxt,linspace
 
-ADDRESS = 'GPIB::2::INSTR'
+ADDRESS = 'GPIB::3::INSTR'
 
 class Device():
     def __init__(self,address=ADDRESS):
         ### establish GPIB communication ###
-        r          = v.ResourceManager('@py')
+        r          = v.ResourceManager()
         self.scope = r.get_instrument(address)
         
 
@@ -33,10 +33,17 @@ class Device():
         stopWL     = float(self.query("STPWL?"))
         startWL    = float(self.query("STAWL?"))
         self.lambd = linspace(startWL,stopWL,len(self.amp))
-
+    
+    def set_start_wavelength(self,value):
+        scope.write('STAWL '+value)
+    def set_stop_wavelength(self,value):
+        scope.write('STPWL '+value)
+        
     def singleSweep(self):
         s = self.write("SGL")
         return s
+    def repeatSweep(self):
+        scope.write('RPT')
     
     def query(self,query,length=1000000):
         self.write(query)
