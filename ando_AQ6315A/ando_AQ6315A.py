@@ -18,7 +18,7 @@ class Device():
         
 
     def save_data(self,filename,FORCE=None):
-        temp_filename = filename + '_ANDO'
+        temp_filename = filename + '_ANDOAQ6315A'
         temp = os.listdir()              # if file exist => exit
         for i in range(len(temp)):
             if temp[i] == temp_filename and not(FORCE):
