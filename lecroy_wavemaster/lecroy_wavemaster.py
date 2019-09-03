@@ -9,7 +9,6 @@ Supported instruments (identified):
 import vxi11 as v
 from optparse import OptionParser
 import sys,os
-import subprocess
 import time
 from numpy import fromstring,int8,int16,float64,sign
 
@@ -43,6 +42,7 @@ class Device():
         
         if filename:
             if trigger: self.single()
+            else: self.stop()
                 
             ### Check if channels are active ###
             for i in range(len(channel)):
