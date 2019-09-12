@@ -80,7 +80,7 @@ class remote_Device():
 
     def save_data_local(self,filename,FORCE=False,camera=CAMERA):
         # Verify file doesn't already exist
-		data = eval(self.data.deepcopy())
+        data = eval(self.data.deepcopy())
         temp_filename = filename + '_spectro32' + camera + '.txt'
         temp = os.listdir()
         for i in range(len(temp)):
