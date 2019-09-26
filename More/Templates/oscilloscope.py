@@ -32,13 +32,13 @@ class Device():
         if trigger: self.single               #WARNING
         self.has_scope_triggered()
         for i in self.active_channels()       #WARNING
-            eval(rep = self.slot%d.get_data() %i)
+            eval('rep = self.slot%d.get_data()' %i)
         self.set_previous_trigger_state(previous_trigger_state)
         return pandas
         
     def save_all_channels(self):
         for i in self.active_channels()
-            eval(rep = self.slot%d.save_data() %i)
+            eval('self.slot%d.save_data()' %i)
         
     ### trigger functions
     def single(self):
@@ -68,13 +68,14 @@ class Channel():
     
     def get_data(self):
         return bytes
-    def save_data(self):
-        
     def get_log_data(self):
         return str
+    def save_data(self):
+        
     def get_data_numerical(self):
         return array_of_float
-    
+    def save_data_numerical(self):
+        return array_of_float
     
     def get_min(self):
         return float
@@ -82,7 +83,8 @@ class Channel():
         return float
     def get_mean(self):
         return float
-    def 
+        
+    def auto_scale_get_data()
 
 
 #################################################################################
@@ -92,17 +94,17 @@ class Device_TCPIP():
         import visa as v
         
         Device.__init__(self, **kwargs)
-        self.controller = ...
+        self.scope = ...
 
 
     def query(self,command):
-        return self.controller.query(command)
+        return self.scope.query(command)
 
     def read(self):
-        return self.controller.read()
+        return self.scope.read()
 
     def write(self,command):
-        self.controller.write(commande,length=self.length)
+        self.scope.write(commande,length=self.length)
 
 
 class Device_VX11():
@@ -110,17 +112,17 @@ class Device_VX11():
         import vxi11 as v
     
         Device.__init__(self, **kwargs)
-        self.controller = ...
+        self.scope = ...
 
 
     def query(self,command):
-        return self.controller.query(command)
+        return self.scope.query(command)
 
     def read(self):
-        return self.controller.read()
+        return self.scope.read()
 
     def write(self,command):
-        self.controller.write(commande,length=self.length)
+        self.scope.write(commande,length=self.length)
 ############################## Connections classes ##############################
 #################################################################################
 
