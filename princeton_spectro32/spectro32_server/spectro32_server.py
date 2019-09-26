@@ -29,8 +29,8 @@ class remote_Device():
         
         ### Initiate camera ###
         self.CAM = self.get_camera(camera=camera)
-		
-		
+
+
     def command(self,command):
         if command == 'DATA?':
             self.get_data()
