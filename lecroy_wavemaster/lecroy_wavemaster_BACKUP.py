@@ -19,10 +19,37 @@ class Device():
         if encoding=='BYTE':dtype=int8;NUM=256;LIM=217.          # 15% less than the maximal number possible
         elif encoding=='WORD':dtype=int16;NUM=65536;LIM=55700.   # 15% less than the maximal number possible
         
+        ### Initiate communication ###
+        self.scope = v.Instrument(address)
         
-
+        ### Format of answers ###
+        self.scope.write('CFMT DEF9,'+encoding+',BIN')
+        self.scope.write('CHDR SHORT')
+        
+        if query:
+            print('\nAnswer to query:',query)
+            rep = self.query(query)
+            print(rep,'\n')
+            sys.exit()
+        elif command:
+            print('\nExecuting command',command)
+            self.scope.write(command)
+            print('\n')
+            sys.exit()
+        
+        self.prev_trigg_mode = self.query('TRMD?')
+        print(self.prev_trigg_mode)
+        
         if filename:
-
+            if trigger: self.single()
+            else: self.stop()
+                
+            ### Check if channels are active ###
+            for i in range(len(channel)):
+                temp = self.query(channel[i]+':TRA?')
+                if temp.find('ON') == -1:
+                    print('\nWARNING:  Channel',channel[i], 'is not active  ===>  exiting....\n')
+                    sys.exit()
             ### Acquire and save datas ###
             for i in range(len(channel)):
                 ### Allow auto scaling the channel gain and offset ###
@@ -93,6 +120,61 @@ class Device():
                 self.get_data(chan=channel[i],filename=filename,SAVE=True,FORCE=FORCE)
         else:
             print('If you want to save, provide an output file name')
+        
+        ### Run the scope BACK in the previous trigger mode###
+        self.previous_trigger_state()
+        
+    
+    def query(self, cmd, nbytes=1000000):
+        """Send command 'cmd' and read 'nbytes' bytes as answer."""
+        self.scope.write(cmd)
+        r = self.scope.read(nbytes)
+        return r
+    
+
+    def get_data(self,chan='C1',filename='test_save_file_',PLOT=False,SAVE=False,LOG=True,FORCE=False,RET=False):
+        self.data = self.query_data(chan)
+        print(len(self.data))
+        ### TO SAVE ###
+        if SAVE:
+            temp_filename = filename + '_lecroy' + chan
+            temp = os.listdir()                         # if file exist => exit
+            for i in range(len(temp)):
+                if temp[i] == temp_filename and not(FORCE):
+                    print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
+                    sys.exit()
+            
+            f = open(temp_filename,'wb')# Save data
+            f.write(self.data)
+            f.close()
+            
+            if LOG:
+                self.preamb = self.get_log_data(chan)             # Save scope configuration
+                f = open(temp_filename + '.log','w')
+                f.write(self.preamb)
+                f.close()
+            print(chan + ' saved')
+        if RET:
+            return self.data
+    
+    def get_log_data(self,chan):
+        rep = self.query(chan+":INSP? 'WAVEDESC'")
+        return rep          
+    
+    def stop(self):
+        self.scope.write("TRMD STOP")
+    def single(self):
+        self.scope.write("TRMD SINGLE")
+        while self.query('TRMD?') != 'TRMD STOP':
+            time.sleep(0.05)
+            pass
+    def previous_trigger_state(self):
+        self.scope.write(self.prev_trigg_mode)
+    
+    def query_data(self, chan):
+        self.scope.write(chan+':WF? DAT1')
+        data = self.scope.read_raw()
+        return data[data.find(b'#')+11:-1]
 
         
 if __name__ == '__main__':
@@ -100,7 +182,23 @@ if __name__ == '__main__':
     usage = """usage: %prog [options] arg
 
                EXAMPLES:
-
+                   get_lecroywavemaster 1 -o filename
+                   Record the first channel and create two files name filename_lecroy and filename_lecroy.log
+            
+                   get_lecroywavemaster -i 192.168.0.4 -e WORD -o test 3
+                   Same as before but record channel 3 with giving an IP address and an int16 data type
+                    
+                   get_lecroywavemaster -i 192.168.0.5 -F -t -m [10,1,2] -n 8 -o test 1,2
+                   Uses spe_mode for automatic adjustments of the vertical scale on channel 1 and 2
+                   Note: if channel is not to be acquired it won't be subjected to amplitude optimization
+                    
+               
+               IMPORTANT INFORMATIONS:
+                    - Datas are obtained in a binary format: int8 
+                    - To retrieve datas (in "VERTUNIT"), see corresponding log file:
+                    DATA(VERTUNIT) = DATA(ACQUIRED) * VERTICAL_GAIN - VERTICAL_OFFSET
+                    
+                See for more informations:  toniq/Prog_guide/Lecroy.pdf
 
                """
     parser = OptionParser(usage)
