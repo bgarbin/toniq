@@ -64,10 +64,26 @@ class Channel():
     def __init__(self,dev,slot):
         self.slot = slot
         self.dev  = dev
+        self.autoscale = False
     
     
+        
     def get_data(self):
+    
+        if self.option is Tue :
+            min= self
+            max =...
+            
+        data = 
+        
+        
+    
+    
         return bytes
+        
+        
+    def 
+        
     def get_log_data(self):
         return str
     def save_data(self):
@@ -83,8 +99,15 @@ class Channel():
         return float
     def get_mean(self):
         return float
-        
-    def auto_scale_get_data()
+       
+    def setAutoscaleEnabled(True/False):
+        self.autos
+    
+    def isAutoscableEnbaled()
+        return True or False
+    
+    def doAutoscale()
+       
     
     def isActive()
 
