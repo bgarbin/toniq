@@ -11,28 +11,25 @@ from numpy import fromstring,int8,int16,float64,sign
 import pandas
 
 class Device():
-    def __init__(self):
+    def __init__(self,nb_channel=4):
         #WARNING how to select channels to instantiate
-        
-        self.active_channels = self.get_active_channels()
-        
-        self.slot1 = Channel(self,1)
+              
+        self.nbchaannel = nbprt              
+        self.channel1 = Channel(self,1)
         self.slot2 = Channel(self,2)
         self.slot3 = Channel(self,3)
         self.slot4 = Channel(self,4)
-        
-        
-    def get_active_channels(self):
-        return list
+
     
     ### user utilities
-    def get_all_channels(self):
+    def get_all_channels(self,channels=[]}):
         """Get mentionned channels or all"""
         previous_trigger_state = self.get_previous_trigger_state()
-        if trigger: self.single               #WARNING
+        if trigger: self.single               #WARNING  stop forced
         self.has_scope_triggered()
         for i in self.active_channels()       #WARNING
-            eval('rep = self.slot%d.get_data()' %i)
+            data = getattr(self,f'{channel_{i}').getData() et isactive
+            #eval('rep = self.slot%d.get_data()' %i)
         self.set_previous_trigger_state(previous_trigger_state)
         return pandas
         
@@ -42,8 +39,11 @@ class Device():
         
     ### trigger functions
     def single(self):
+        self.write
         
-    def stop(self):
+    def stop(self true):
+    
+    def isstop(self)
         
     def get_previous_trigger_state(self):
         return str(previous_trigger_state)
@@ -85,16 +85,18 @@ class Channel():
         return float
         
     def auto_scale_get_data()
+    
+    def isActive()
 
 
 #################################################################################
 ############################## Connections classes ##############################
 class Device_TCPIP():
-    def __init__(self, **kwargs):
+    def __init__(self, address = ,  **kwargs):
         import visa as v
         
         Device.__init__(self, **kwargs)
-        self.scope = ...
+        self.scope = ...(address)
 
 
     def query(self,command):
@@ -107,12 +109,12 @@ class Device_TCPIP():
         self.scope.write(commande,length=self.length)
 
 
-class Device_VX11():
-    def __init__(self, **kwargs):
+class Device_VX11(): en haut
+    def __init__(self, address =  , **kwargs):
         import vxi11 as v
     
         Device.__init__(self, **kwargs)
-        self.scope = ...
+        self.scope = ...(address)
 
 
     def query(self,command):
