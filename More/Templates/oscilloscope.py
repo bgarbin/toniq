@@ -10,50 +10,94 @@ import time
 from numpy import fromstring,int8,int16,float64,sign
 import pandas
 
-class Device():
-    def __init__(self,nb_channel=4):
-        #WARNING how to select channels to instantiate
-              
-        self.nbchaannel = nbprt              
-        self.channel1 = Channel(self,1)
-        self.slot2 = Channel(self,2)
-        self.slot3 = Channel(self,3)
-        self.slot4 = Channel(self,4)
 
+#################################################################################
+############################## Connections classes ##############################
+class Device_TCPIP():
+    def __init__(self, address,  **kwargs):
+        import visa as v
+        
+        Device.__init__(self, **kwargs)
+        
+        rm        = v.ResourceManager()
+        self.inst = rm.get_instrument(address)
+
+
+    def query(self,command):
+        return self.inst.query(command)
+
+    def read(self):
+        return self.inst.read()
+
+    def write(self,command):
+        self.inst.write(commande,length=self.length)
+
+
+class Device_VX11(): en haut
+    def __init__(self, address, **kwargs):
+        import vxi11 as v
     
-    ### user utilities
-    def get_all_channels(self,channels=[]}):
-        """Get mentionned channels or all"""
+        Device.__init__(self, **kwargs)
+        
+        self.inst = v.Instrument(address)
+
+
+    def query(self,command):
+        return self.inst.query(command)
+
+    def read(self):
+        return self.inst.read()
+
+    def write(self,command):
+        self.inst.write(commande,length=self.length)
+############################## Connections classes ##############################
+#################################################################################
+
+
+class Device():
+    def __init__(self,nb_channels=4):
+              
+        self.nb_channels = nb_channels
+        
+        for i in xrange(1,len(self.nb_channels)+1):
+            setattr(self,f'channel{i}',Channel(self,i))
+    
+    
+    ### User utilities
+    def get_data_channels(self,channels=[]):
+        """Get all channels or the ones specified"""
         previous_trigger_state = self.get_previous_trigger_state()
-        if trigger: self.single               #WARNING  stop forced
-        self.has_scope_triggered()
-        for i in self.active_channels()       #WARNING
-            data = getattr(self,f'{channel_{i}').getData() et isactive
-            #eval('rep = self.slot%d.get_data()' %i)
+        self.stop()
+        self.is_stopped()
+        if channels == []: channels = list(xrange(1,self.nb_channels+1))
+        for i in channels():
+            if not(getattr(self,f'channel{i}').is_active()): continue
+            else:
+                # WARNING Do we warn the user he is stupid?
+            data = getattr(self,f'channel{i}').get_data()
         self.set_previous_trigger_state(previous_trigger_state)
-        return pandas
+        #return pandas.DataFrame
         
     def save_all_channels(self):
         for i in self.active_channels()
-            eval('self.slot%d.save_data()' %i)
+            getattr(self,f'channel{i}').save_data()
         
-    ### trigger functions
+    ### Trigger functions
     def single(self):
-        self.write
         
-    def stop(self true):
-    
-    def isstop(self)
+    def stop(self):
         
+    def is_stopped(self)
+        while self.query('TRMD?') != 'TRMD STOP':    # typical example
+            time.sleep(0.05)
+        return True
     def get_previous_trigger_state(self):
         return str(previous_trigger_state)
         
     def set_previous_trigger_state(self):
         
-    def has_scope_triggered(self):
-        return bool
         
-    ### possible cross-channel settings 
+    ### Cross-channel settings 
     def set_encoding(self):
         return str
     def get_encoding(self):
@@ -70,19 +114,14 @@ class Channel():
         
     def get_data(self):
     
-        if self.option is Tue :
+        if self.option is True :
             min= self
             max =...
             
         data = 
         
-        
-    
-    
         return bytes
         
-        
-    def 
         
     def get_log_data(self):
         return str
@@ -93,6 +132,7 @@ class Channel():
     def save_data_numerical(self):
         return array_of_float
     
+    # additionnal functions
     def get_min(self):
         return float
     def get_max(self):
@@ -100,56 +140,20 @@ class Channel():
     def get_mean(self):
         return float
        
-    def setAutoscaleEnabled(True/False):
-        self.autos
     
-    def isAutoscableEnbaled()
-        return True or False
+    def set_autoscale_enabled(bool):
+        self.autoscale = 
+    def is_autoscable_enabled()
+        return bool
     
-    def doAutoscale()
+    def do_autoscale()
        
     
-    def isActive()
-
-
-#################################################################################
-############################## Connections classes ##############################
-class Device_TCPIP():
-    def __init__(self, address = ,  **kwargs):
-        import visa as v
+    def is_active():
         
-        Device.__init__(self, **kwargs)
-        self.scope = ...(address)
 
 
-    def query(self,command):
-        return self.scope.query(command)
 
-    def read(self):
-        return self.scope.read()
-
-    def write(self,command):
-        self.scope.write(commande,length=self.length)
-
-
-class Device_VX11(): en haut
-    def __init__(self, address =  , **kwargs):
-        import vxi11 as v
-    
-        Device.__init__(self, **kwargs)
-        self.scope = ...(address)
-
-
-    def query(self,command):
-        return self.scope.query(command)
-
-    def read(self):
-        return self.scope.read()
-
-    def write(self,command):
-        self.scope.write(commande,length=self.length)
-############################## Connections classes ##############################
-#################################################################################
 
         
         
@@ -165,7 +169,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage)
     parser.add_option("-c", "--command", type="str", dest="com", default=None, help="Set the command to use." )
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use." )
-    parser.add_option("-i", "--address", type="string", dest="address", default='169.254.166.206', help="Set ip address" )
+    parser.add_option("-i", "--address", type="string", dest="address", default='192.168.0.4', help="Set ip address" )
     (options, args) = parser.parse_args()
     
     ### Compute channels to acquire ###
