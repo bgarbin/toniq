@@ -14,7 +14,7 @@ import pandas
 #################################################################################
 ############################## Connections classes ##############################
 class Device_TCPIP():
-    def __init__(self, address,  **kwargs):
+    def __init__(self, address, **kwargs):
         import visa as v
         
         Device.__init__(self, **kwargs)
@@ -59,8 +59,8 @@ class Device():
               
         self.nb_channels = nb_channels
         
-        #for i in xrange(1,len(self.nb_channels)+1):
-            #setattr(self,f'channel{i}',Channel(self,i))
+        for i in range(1,self.nb_channels+1):
+            setattr(self,f'channel{i}',Channel(self,i))
     
     
     ### User utilities
@@ -69,18 +69,20 @@ class Device():
         previous_trigger_state = self.get_previous_trigger_state()
         self.stop()
         self.is_stopped()
-        if channels == []: channels = list(xrange(1,self.nb_channels+1))
-        #for i in channels():
-            #if not(getattr(self,f'channel{i}').is_active()): continue
-            #else:
-                ## WARNING Do we warn the user he is stupid?
-            #data = getattr(self,f'channel{i}').get_data()
+        if channels == []: channels = list(range(1,self.nb_channels+1))
+        for i in channels():
+            if not(getattr(self,f'channel{i}').is_active()): continue
+            else:
+                pass
+                # WARNING Do we warn the user he is stupid?
+            data = getattr(self,f'channel{i}').get_data()
         self.set_previous_trigger_state(previous_trigger_state)
         #return pandas.DataFrame
         
-    #def save_all_channels(self):
-        #for i in self.active_channels()
-            #getattr(self,f'channel{i}').save_data()
+    def save_data_channels(self,channels=[]):
+        if channels == []: channels = list(range(1,self.nb_channels+1))
+        for i in self.active_channels():
+            getattr(self,f'channel{i}').save_data()
         
     ### Trigger functions
     def single(self):
@@ -190,8 +192,6 @@ if __name__ == '__main__':
     ### Start the talker ###
     classes = [name for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass) if obj.__module__ is __name__]
     assert 'Device_'+options.link in classes , "Not in " + str([a for a in classes if a.startwith('Device_')])
-    #print(__name__,__module__)
-    Device_LINK = getattr(__name__,'Device_'+options.link)
-    I = Device_LINK()
-    
+    Device_LINK = getattr(sys.modules[__name__],'Device_'+options.link)
+    I = Device_LINK(address=options.address)
     
