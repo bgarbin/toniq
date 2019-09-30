@@ -13,15 +13,13 @@ class Device_VISA():
     def __init__(self, address):
         import visa
         
-        Device.__init__(self)
-        
         self.TIMEOUT = 10000 #ms
         
         # Instantiation
         rm = visa.ResourceManager()
         self.controller = rm.open_resource(address)
         self.controller.timeout = self.TIMEOUT
-        
+        Device.__init__(self)        
 
     def close(self):
         try : self.controller.close()

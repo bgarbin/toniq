@@ -21,9 +21,9 @@ class Device_TCPIP():
     def __init__(self, address, **kwargs):
         import visa as v
         
-        Device.__init__(self, **kwargs)
         rm        = v.ResourceManager()
         self.inst = rm.get_instrument(address)
+        Device.__init__(self, **kwargs)
     
     def query(self,command):
         self.write(command)
@@ -41,14 +41,16 @@ class Device_VXI11():
     def __init__(self, address, **kwargs):
         import vxi11 as v
     
-        Device.__init__(self, **kwargs)
         self.inst = v.Instrument(address)
+        Device.__init__(self, **kwargs)
 
     def query(self, command, nbytes=100000000):
         self.write(command)
         return self.read(nbytes)
     def read(self,nbytes=100000000):
         self.inst.read(nbytes)
+    def read_raw(self):
+        return self.inst.read_raw()
     def write(self,cmd):
         self.inst.write(cmd)
     def close(self):
@@ -79,19 +81,16 @@ class Device():
         if channels == []: channels = list(range(1,self.nb_channels+1))
         for i in channels():
             if not(getattr(self,f'channel{i}').is_active()): continue
-            else:
-                pass
-                # WARNING Do we warn the user he is stupid?
             data = getattr(self,f'channel{i}').get_data()
             log_data = getattr(self,f'channel{i}').get_log_data()
         self.set_previous_trigger_state(previous_trigger_state)
         #return pandas.DataFrame
         
-    def save_data_channels(self,channels=[]):
+    def save_data_channels(self,filename,channels=[],FORCE=False):
         if channels == []: channels = list(range(1,self.nb_channels+1))
         for i in self.active_channels():
-            getattr(self,f'channel{i}').save_data()
-            getattr(self,f'channel{i}').save_log_data()
+            getattr(self,f'channel{i}').save_data(filename=filename,FORCE=FORCE)
+            getattr(self,f'channel{i}').save_log_data(filename=filename,FORCE=FORCE)
         
     ### Trigger functions
     def single(self):
@@ -129,29 +128,28 @@ class Channel():
     def get_data(self):
         if self.autoscale_iter:
             self.do_autoscale()
-            
-        self.inst.write(f'C{self.channel}:WF? DAT1')
-        data = self.read_raw()
+        self.dev.write(f'C{self.channel}:WF? DAT1')
+        self.data = self.dev.read_raw()
         return data[data.find(b'#')+11:-1]
     def get_log_data(self):
-        rep = self.query(f"C{self.channel}:INSP? 'WAVEDESC'")
-        return rep
+        self.log_data = self.dev.query(f"C{self.channel}:INSP? 'WAVEDESC'")
+        return self.log_data
     
-    def save_data(self,filename):
+    def save_data(self,filename,FORCE=False):
         temp_filename = f'{filename}_lecroyC{self.channel}'
-        temp = os.listdir()                         # if file exist => exit
-        for i in range(len(temp)):
-            if temp[i] == temp_filename and not(FORCE):
-                print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
-                return
-        
+        if os.path.exists(os.path.join(os.getcwd(),temp_filename)) and not(FORCE):
+            print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
+            return
         f = open(temp_filename,'wb')# Save data
         f.write(self.data)
         f.close()
-    def save_log_data(self,filename):
-        temp_filename = f'{filename}_lecroyC{self.channel}'
-        f = open(temp_filename + '.log','w')
-        f.write(self.preamb)
+    def save_log_data(self,filename,FORCE=False):
+        temp_filename = f'{filename}_DSACHAN{self.channel}.log'
+        if os.path.exists(os.path.join(os.getcwd(),temp_filename)) and not(FORCE):
+            print('\nFile ', temp_filename, ' already exists, change filename or remove old file\n')
+            return
+        f = open(temp_filename,'w')
+        f.write(self.log_data)
         f.close()
     
     def get_data_numerical(self):
@@ -161,13 +159,13 @@ class Channel():
     
     # additionnal functions
     def get_min(self):
-        stri  = self.query(f'C{self.channel}:PAVA? MIN,MAX')
+        stri  = self.dev.query(f'C{self.channel}:PAVA? MIN,MAX')
         temp2 = 'MIN,'
         temp3 = stri.find(temp2)
         temp4 = stri.find(f' V')
         return float(stri[temp3+len(temp2):temp4])
     def get_max(self):
-        stri  = self.query(f'C{self.channel}:PAVA? MIN,MAX')
+        stri  = self.dev.query(f'C{self.channel}:PAVA? MIN,MAX')
         stri  = stri[stri.find(f' V')+len(f' V'):]
         temp2 = 'MAX,'
         temp3 = stri.find(temp2)
@@ -175,16 +173,16 @@ class Channel():
         return float(stri[temp3+len(temp2):temp4])
         
     def get_mean(self):                      # WARNING to test
-        return float(self.query(f'C{self.channel}:PAVA? MEAN'))
+        return float(self.dev.query(f'C{self.channel}:PAVA? MEAN'))
         
     def set_vertical_offset(self,val):
-        self.scope.write(f'C{self.channel}:OFST {val}') 
+        self.dev.write(f'C{self.channel}:OFST {val}') 
     def get_vertical_offset(self,val):
-        return self.scope.write(f'C{self.channel}:OFST?').split(' ')[1]
+        return self.dev.write(f'C{self.channel}:OFST?').split(' ')[1]
     def set_vertical_amplitude(self,val):
-        self.scope.write(f'C{self.channel}:VDIV {val}') 
+        self.dev.write(f'C{self.channel}:VDIV {val}') 
     def get_vertical_amplitude(self,val):
-        return self.scope.write(f'C{self.channel}:VDIV?').split(' ')[1])
+        return self.dev.write(f'C{self.channel}:VDIV?').split(' ')[1])
         
     def do_autoscale():
         k = 1
@@ -224,7 +222,7 @@ class Channel():
         return self.autoscale_factor
            
     def is_active():
-        temp = self.query(f'C{self.channel}:TRA?')
+        temp = self.dev.query(f'C{self.channel}:TRA?')
         if temp.find('ON') == -1:
             print('\nWARNING:  Channel',channel[i], 'is not active  ===>  exiting....\n')
             sys.exit()
@@ -262,22 +260,19 @@ if __name__ == '__main__':
     parser.add_option("-q", "--query", type="str", dest="que", default=None, help="Set the query to use." )
     parser.add_option("-i", "--address", type="string", dest="address", default='192.168.0.4', help="Set ip address." )
     parser.add_option("-l", "--link", type="string", dest="link", default='VXI11', help="Set the connection type." )
+    parser.add_option("-F", "--force",action = "store_true", dest="force", default=None, help="Allows overwriting file" )
+    parser.add_option("-e", "--encoding", type="string", dest="encoding", default='BYTE', help="For mofifying the encoding format of the answer" )
+    parser.add_option("-m", "--spe_mode", type="string", dest="spe_mode", default=None, help="For allowing auto modification of the vertical gain. List of: spe_mode iteration number, all the channels to apply spe mode to. Note if no channel specified, all the channel are corrected. WARNING: if you want all the channels to correpond to the same trigger event, you need to spe_mode one channel only and to physically plug the cable in the first channel acquired (first in the list 1->4)")
+    parser.add_option("-n", "--spe_fact", type="float", dest="spe_fact", default=8., help="For setting limits of the vertical gain, units are in number of scope divisions here. WARNING: Do not overpass 9 due to a security in the code! WARNING: the number of vertical divisions might depend on the scope (8 or 10 usually)." )
+    parser.add_option("-t", "--trigger", action="store_true", dest="trigger", default=False, help="Ask the scope to trigger once before acquiring." )
     (options, args) = parser.parse_args()
     
     ### Compute channels to acquire ###
-    #if (len(args) == 0) and (options.com is None) and (options.que is None):
-        #print('\nYou must provide at least one channel\n')
-        #sys.exit()
-    #elif len(args) == 1:
-        #chan = []
-        #temp_chan = args[0].split(',')                  # Is there a coma?
-        #for i in range(len(temp_chan)):
-            #chan.append('C' + temp_chan[i])
-    #else:
-        #chan = []
-        #for i in range(len(args)):
-            #chan.append('C' + str(args[i]))
-    #print('Channel(s):   ', chan)
+    if (len(args) == 0) and (options.com is None) and (options.que is None):
+        print('\nYou must provide at least one channel\n')
+        sys.exit()
+    else:
+        chan = [int(a) for a in args[0].split(',')]
     ####################################
     
     ### Start the talker ###
@@ -288,11 +283,11 @@ if __name__ == '__main__':
     
     if query:
         print('\nAnswer to query:',query)
-        rep = self.query(query)
+        rep = I.query(query)
         print(rep,'\n')
         sys.exit()
     elif command:
         print('\nExecuting command',command)
-        self.scope.write(command)
+        I.write(command)
         print('\n')
         sys.exit()
