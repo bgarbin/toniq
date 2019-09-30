@@ -9,6 +9,7 @@ Supported instruments (identified):
 import sys
 from numpy import zeros,ones,linspace
 
+
 #################################################################################
 ############################## Connections classes ##############################
 class Device_VISA():
