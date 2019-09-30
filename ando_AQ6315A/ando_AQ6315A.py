@@ -28,7 +28,7 @@ class Device():
             
     def get_data(self):
         print("ACQUIRING...")
-        self.amp    = self.query("LDATA").split(',')[1:]
+        self.amp    = self.query("LDATB").split(',')[1:]
         self.amp    = [eval(self.amp[i]) for i in range(len(self.amp))]
         stopWL     = float(self.query("STPWL?"))
         startWL    = float(self.query("STAWL?"))
@@ -53,7 +53,7 @@ class Device():
         self.string = query + '\n'
         self.scope.write(self.string)
     def read(self,length=10000000):
-        rep = self.scope.read_raw()
+        rep = self.scope.read()
         return rep
         
     def close(self):
