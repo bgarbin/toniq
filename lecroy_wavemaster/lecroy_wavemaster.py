@@ -8,12 +8,8 @@ Supported instruments (identified):
 - Waverunner 6050A
 """
 
-#WARNING Remains: WARNINGs here and there, autoscale, encoding, bash handler
-
-
 import sys,os
 import time
-import pandas
 
 #################################################################################
 ############################## Connections classes ##############################
@@ -62,7 +58,7 @@ class Device_VXI11():
 class Device():
     def __init__(self,nb_channels=4):
         
-        self.nb_channels = nb_channels
+        self.nb_channels = int(nb_channels)
         self.encoding    = 'BYTE'
         
         self.scope.write('CFMT DEF9,'+encoding+',BIN')
@@ -73,7 +69,7 @@ class Device():
     
     
     ### User utilities
-    def get_data_channels(self,channels=[]):
+    def acquire_data_channels(self,channels=[]):
         """Get all channels or the ones specified"""
         previous_trigger_state = self.get_previous_trigger_state()    #1 WARNING previous trigger state in memory or returned
         self.stop()
@@ -81,10 +77,9 @@ class Device():
         if channels == []: channels = list(range(1,self.nb_channels+1))
         for i in channels():
             if not(getattr(self,f'channel{i}').is_active()): continue
-            data = getattr(self,f'channel{i}').get_data()
-            log_data = getattr(self,f'channel{i}').get_log_data()
+            getattr(self,f'channel{i}').get_data()
+            getattr(self,f'channel{i}').get_log_data()
         self.set_previous_trigger_state(previous_trigger_state)
-        #return pandas.DataFrame
         
     def save_data_channels(self,filename,channels=[],FORCE=False):
         if channels == []: channels = list(range(1,self.nb_channels+1))
@@ -125,14 +120,18 @@ class Channel():
         self.autoscale_factor = 8
     
     
-    def get_data(self):
+    def acquire_data(self):
         if self.autoscale_iter:
             self.do_autoscale()
         self.dev.write(f'C{self.channel}:WF? DAT1')
         self.data = self.dev.read_raw()
-        return data[data.find(b'#')+11:-1]
-    def get_log_data(self):
+        self.data = self.data[self.data.find(b'#')+11:-1]
+    def acquire_log_data(self):
         self.log_data = self.dev.query(f"C{self.channel}:INSP? 'WAVEDESC'")
+    
+    def get_data(self):
+        return self.data
+    def get_log_data(self):
         return self.log_data
     
     def save_data(self,filename,FORCE=False):
