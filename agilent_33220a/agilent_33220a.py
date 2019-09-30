@@ -1,20 +1,35 @@
 #!/usr/bin/env python3
 
-import visa as v
-from optparse import OptionParser
 import sys
 import time
 from numpy import zeros,ones,linspace
 
-ADDRESS = 'TCPIP::172.24.23.119::INSTR'
+#################################################################################
+############################## Connections classes ##############################
+class Device_VISA():
+    def __init__(self, address):
+        import visa as v
+        
+        Device.__init__(self)
+        rm = v.ResourceManager()
+        self.inst = rm.get_instrument(address)
+        
+    def close(self):
+        self.inst.close()
+    def query(self,query):
+        self.write(query)
+        return self.read()
+    def write(self,query):
+        self.inst.write(query)
+    def read(self):
+        rep = self.inst.read()
+        return rep
+############################## Connections classes ##############################
+#################################################################################
 
 class Device():
-    def __init__(self,address=ADDRESS):
-        
-        rm = v.ResourceManager('@py')
-        self.inst = rm.get_instrument(address)
-    
-    
+    def __init__(self):
+        pass
     def amplitude(self,amplitude):
         self.write('VOLT '+amplitude)
     def offset(self,offset):
@@ -28,25 +43,16 @@ class Device():
         l.extend(ll);l.extend(lll)
         s = str(l)[1:-1]
         self.write('DATA VOLATILE,'+s)
-    
-    
-    def close(self):
-        #self.inst.close()
-        pass
-    def query(self,query):
-        self.write(query)
-        return self.read()
-    def write(self,query):
-        self.inst.write(query)
-    def read(self):
-        rep = self.inst.read()
-        return rep
+
     def idn(self):
         self.inst.write('*IDN?')
         self.read()
         
-            
+        
 if __name__ == '__main__':
+
+    from optparse import OptionParser
+    import inspect
 
     usage = """usage: %prog [options] arg
                
@@ -63,11 +69,15 @@ if __name__ == '__main__':
     parser.add_option("-o", "--offset", type="str", dest="off", default=None, help="Set the offset value." )
     parser.add_option("-a", "--amplitude", type="str", dest="amp", default=None, help="Set the amplitude." )
     parser.add_option("-f", "--frequency", type="str", dest="freq", default=None, help="Set the frequency." )
-    parser.add_option("-i", "--address", type="str", dest="address", default=ADDRESS, help="Set the Ip address to use for communicate." )
+    parser.add_option("-i", "--address", type="str", dest="address", default='TCPIP::172.24.23.119::INSTR', help="Set the Ip address to use for communicate." )
+    parser.add_option("-l", "--link", type="string", dest="link", default='VISA', help="Set the connection type." )
     (options, args) = parser.parse_args()
     
     ### Start the talker ###
-    I = Device(address=options.address)
+    classes = [name for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass) if obj.__module__ is __name__]
+    assert 'Device_'+options.link in classes , "Not in " + str([a for a in classes if a.startwith('Device_')])
+    Device_LINK = getattr(sys.modules[__name__],'Device_'+options.link)
+    I = Device_LINK(address=options.address)
     if options.query:
         print('\nAnswer to query:',options.query)
         rep = I.query(options.query)

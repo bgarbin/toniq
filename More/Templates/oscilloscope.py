@@ -13,7 +13,7 @@ import pandas
 
 #################################################################################
 ############################## Connections classes ##############################
-class Device_TCPIP():
+class Device_VISA():
     def __init__(self, address, **kwargs):
         import visa as v
         
