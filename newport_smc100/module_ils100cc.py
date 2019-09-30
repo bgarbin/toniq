@@ -82,14 +82,6 @@ class ILS100CC() :
         config = []
         
         config.append({'element':'variable','name':'position','type':str,
-                       'read':self.getPosition'write':self.setPosition})
+                       'read':self.getPosition,'write':self.setPosition})
 
         return config
-
-
-    
-
-        
-    
-    
-    
