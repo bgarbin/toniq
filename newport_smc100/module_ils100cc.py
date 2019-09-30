@@ -76,12 +76,8 @@ class ILS100CC() :
     def getAcceleration(self):
         return self.query('AC?')
     
-
     def getDriverConfig(self):
-        
         config = []
-        
         config.append({'element':'variable','name':'position','type':str,
-                       'read':self.getPosition,'write':self.setPosition})
-
+                       'read':self.getPosition,'write':self.setPosition, 'help':'Initiates an absolute move.'})
         return config
