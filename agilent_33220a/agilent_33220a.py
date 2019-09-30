@@ -7,17 +7,16 @@ Supported instruments (identified):
 """
 
 import sys
-import time
 from numpy import zeros,ones,linspace
 
 #################################################################################
 ############################## Connections classes ##############################
 class Device_VISA():
     def __init__(self, address):
-        import visa as v
+        import visa
         
         Device.__init__(self)
-        rm = v.ResourceManager()
+        rm = visa.ResourceManager()
         self.inst = rm.get_instrument(address)
         
     def close(self):

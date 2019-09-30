@@ -87,11 +87,9 @@ class Device():
         
         config = []
         
-        self.A 
-
         for i in range(10) :
             if hasattr(self,f'slot{i}') :
-                config.append({'element':'module','name':f'slot{i}','object':getattr(self,f'slot{i}'})
+                config.append({'element':'module','name':f'slot{i}','object':getattr(self,f'slot{i}')})
         
         config.append({'element':'variable','name':'amplitude','type':float,'unit':'V',
                        'read':self.getAmplitude,'write':self.setAmplitude,
