@@ -51,7 +51,7 @@ class Device() :
     
     def getDriverConfig(self):
         config = []
-        config.append({'element':'variable','name':'power','type':str,'read':self.getPower, ,'write':self.setPower}, 'help':'Set power.')
+        config.append({'element':'variable','name':'power','type':str,'read':self.getPower, ,'write':self.setPower, 'help':'Set power.'})
         return config
     
 
