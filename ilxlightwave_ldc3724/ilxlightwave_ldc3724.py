@@ -5,14 +5,14 @@ Created on Wed Apr  3 20:06:08 2019
 
 @author: quentin.chateiller
 """
-import visa
+
 import time
 
-ADDRESS = 'GPIB0::26::INSTR'
-
-class Device():
-    
-    def __init__(self,address=ADDRESS):
+#################################################################################
+############################## Connections classes ##############################
+class Device_VISA():
+    def __init__(self, address):
+        import visa
         
         self.TIMEOUT = 15000 #ms
         
@@ -20,25 +20,19 @@ class Device():
         rm = visa.ResourceManager()
         self.controller = rm.get_instrument(address)
         self.controller.timeout = self.TIMEOUT
+        self.controller.read_termination='\n'
+        self.controller.write_termination='\n'
+        self.controller.baud_rate = 19200
         #self.controller.query_delay = 0.05
         
-        # Initialisation
-        self.write('*CLS')      # Clear status registers
-        self.write('DELAY 0')   # User commands not delayed
-        
-        # Subdevices
-        self.tec = TEC(self)
-        self.las = LAS(self)
-        
+        Device.__init__(self)
+
     def close(self):
         try : self.controller.close()
         except : pass
 
     def query(self,command):
-        result = self.write(command)
-        #time.sleep(0.01)     # 50 ms delay to allow proper behavior from NI_GPIB_USB devices
-        result = self.controller.read()
-        result = result.strip('\n')
+        result = self.controller.query(command)
         if '=' in result : result = result.split('=')[1]
         try : result = float(result)
         except: pass
@@ -48,19 +42,49 @@ class Device():
         self.controller.write(command)
         time.sleep(0.01)
         
-    def read_loop(self):
-        ti = time.time()
-        while True:
-            if (time.time()-ti) > self.TIMEOUT:
-                ti = time.time()
-                
-            else:
-                break
-        return 
+
+         
+class Device_GPIB():
+    def __init__(self,address):
+        import Gpib
+        self.inst = Gpib.Gpib(address[0],address[1])
+        Device.__init__(self)
+        
+    def close(self):
+        """WARNING: GPIB closing is automatic at sys.exit() doing it twice results in a gpib error"""
+        self.inst.close(self.inst.id)
+    def query(self,query):
+        self.write(query)
+        return self.read()
+    def write(self,query):
+        self.inst.write(query)
+    def read(self):
+        return self.inst.read()
+############################## Connections classes ##############################
+#################################################################################
+
+class Device():
+    
+    def __init__(self):
+    
+        # Initialisation
+        self.write('*CLS')      # Clear status registers
+        self.write('DELAY 0')   # User commands not delayed
+        
+        # Subdevices
+        self.tec = TEC(self)
+        self.las = LAS(self)
+        
         
     def getID(self):
         return self.query('*IDN?')
     
+    
+    def getDriverConfig(self):
+        config = []
+        config.append({'element':'module','name':'tec','object':self.tec})
+        config.append({'element':'module','name':'las','object':self.las})
+        return config
     
     
 
@@ -73,23 +97,24 @@ class LAS():
         self.dev = dev
         self.PRECISION = 0.1
 
-
+    def write(self,command):
+        self.dev.write(command)
+        
+    def query(self,command):
+        return self.dev.query(command)
     
     
     def getCurrent(self):
-        self.dev.write('LAS:DIS:LDI')
-        #self.dev.query('*OPC?')
-        return float(self.dev.query('LAS:LDI?'))
+        return float(self.query('LAS:LDI?'))
 
     def getCurrentSetpoint(self):
-        return float(self.dev.query('LAS:SET:LDI?'))
+        return float(self.query('LAS:SET:LDI?'))
         
     def setCurrent(self,value):
         assert isinstance(float(value),float)
         value = float(value)
-        self.dev.write(f'LAS:LDI {value}')
-        self.dev.write('LAS:DIS:SET')
-        #self.dev.query('*OPC?')
+        self.write(f'LAS:LDI {value}')
+        self.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -105,9 +130,8 @@ class LAS():
     def setPower(self,value):
         assert isinstance(float(value),float)
         value = float(value)
-        self.dev.write(f'LAS:MDP {value}')
-        self.dev.write('LAS:DIS:SET')
-        #self.dev.query('*OPC?')
+        self.write(f'LAS:MDP {value}')
+        self.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -118,22 +142,21 @@ class LAS():
                 self.setEnabled(False)
 
     def getPower(self):
-        self.dev.write('LAS:DIS:MDP')
-        #self.dev.query('*OPC?')
-        return float(self.dev.query('LAS:MDP?'))
+        self.query('*OPC?')
+        return float(self.query('LAS:MDP?'))
 
     def getPowerSetpoint(self):
-        return float(self.dev.query('LAS:SET:MDP?'))
+        return float(self.query('LAS:SET:MDP?'))
     
     
     
     
     def setEnabled(self,value):
         assert isinstance(value,bool)
-        self.dev.write(f'LAS:OUT {int(value)}')
-        #self.dev.query('*OPC?')
+        self.write(f'LAS:OUT {int(value)}')
+        self.query('*OPC?')
         if value is True :
-            mode = self.dev.query('LAS:MODE?')
+            mode = self.query('LAS:MODE?')
             if mode.startswith('I'):
                 self.waitForConvergence(self.getCurrent,
                                         self.getCurrentSetpoint())
@@ -142,7 +165,7 @@ class LAS():
                                         self.getPowerSetpoint())
         
     def isEnabled(self):
-        return bool(int(self.dev.query('LAS:OUT?')))
+        return bool(int(self.query('LAS:OUT?')))
 
     
     
@@ -168,17 +191,25 @@ class LAS():
         currMode = self.getMode()
         enabledMode = self.isEnabled()
         if currMode != mode :
-            self.dev.write(f'LAS:MODE:{mode}')
-            #self.dev.query('*OPC?')
+            self.write(f'LAS:MODE:{mode}')
+            self.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):
-        return self.dev.query('LAS:MODE?')
+        return self.query('LAS:MODE?')
         
         
     
     
-    
+    def getDriverConfig(self):
+        config = []
+        config.append({'element':'variable','name':'currentSetpoint','type':float,'unit':'mA','read':self.getCurrentSetpoint,'write':self.setCurrentSetpoint,'help':'Current setpoint'})
+        config.append({'element':'variable','name':'current','type':float,'unit':'mA','read':self.getCurrent,'help':'Current'})
+        config.append({'element':'variable','name':'powerSetpoint','type':float,'unit':'mW','read':self.getPowerSetpoint,'write':self.setPowerSetpoint,'help':'Output power setpoint'})
+        config.append({'element':'variable','name':'power','type':float,'unit':'mW','read':self.getPower,'help':'Output power'})
+        config.append({'element':'variable','name':'output','type':bool,'read':self.isEnabled,'write':self.setEnabled,'help':'Output state'})
+        config.append({'element':'variable','name':'mode','type':str,'read':self.getMode,'write':self.setMode,'help':'Control mode'})
+        return config
     
     
 
@@ -193,9 +224,16 @@ class TEC():
 
 
 
+    def write(self,command):
+        self.dev.write(command)
+        
+    def query(self,command):
+        return self.dev.query(command)
+    
+    
+    
+
     def getResistance(self):
-        self.write('TEC:DIS:R')
-        #self.dev.query('*OPC?')
         return float(self.query('TEC:R?'))
 
 
@@ -204,7 +242,7 @@ class TEC():
         assert isinstance(int(value),int)
         value = int(value)
         self.write(f'TEC:GAIN {value}')
-        #self.dev.query('*OPC?')
+        self.query('*OPC?')
         
     def getGain(self):
         return int(float(self.query('TEC:GAIN?')))
@@ -213,19 +251,16 @@ class TEC():
 
     
     def getCurrent(self):
-        self.dev.write('TEC:DIS:ITE')
-        #self.dev.query('*OPC?')
-        return float(self.dev.query('TEC:ITE?'))
+        return float(self.query('TEC:ITE?'))
 
     def getCurrentSetpoint(self):
-        return float(self.dev.query('TEC:SET:ITE?'))
+        return float(self.query('TEC:SET:ITE?'))
         
     def setCurrent(self,value):
         assert isinstance(float(value),float)
         value = float(value)
-        self.dev.write(f'TEC:ITE {value}')
-        self.dev.write('TEC:DIS:SET')
-        #self.dev.query('*OPC?')
+        self.write(f'TEC:ITE {value}')
+        self.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -241,9 +276,8 @@ class TEC():
     def setTemperature(self,value):
         assert isinstance(float(value),float)
         value = float(value)
-        self.dev.write(f'TEC:T {value}')
-        self.dev.write('TEC:DIS:SET')
-        #self.dev.query('*OPC?')
+        self.write(f'TEC:T {value}')
+        self.query('*OPC?')
         if value > 0 :
             if self.isEnabled() is False :
                 self.setEnabled(True)
@@ -254,12 +288,10 @@ class TEC():
                 self.setEnabled(False)
 
     def getTemperature(self):
-        self.dev.write('TEC:DIS:T')
-        #self.dev.query('*OPC?')
-        return float(self.dev.query('TEC:T?'))
+        return float(self.query('TEC:T?'))
 
     def getTemperatureSetpoint(self):
-        return float(self.dev.query('TEC:SET:T?'))
+        return float(self.query('TEC:SET:T?'))
     
     
 
@@ -267,10 +299,10 @@ class TEC():
     
     def setEnabled(self,value):
         assert isinstance(value,bool)
-        self.dev.write(f'TEC:OUT {int(value)}')
-        #self.dev.query('*OPC?')
+        self.write(f'TEC:OUT {int(value)}')
+        self.query('*OPC?')
         if value is True :
-            mode = self.dev.query('TEC:MODE?')
+            mode = self.query('TEC:MODE?')
             if mode.startswith('I'):
                 self.waitForConvergence(self.getCurrent,
                                         self.getCurrentSetpoint())
@@ -279,7 +311,7 @@ class TEC():
                                         self.getTemperatureSetpoint())
         
     def isEnabled(self):
-        return bool(int(self.dev.query('TEC:OUT?')))
+        return bool(int(self.query('TEC:OUT?')))
     
     
     
@@ -306,18 +338,36 @@ class TEC():
         currMode = self.getMode()
         enabledMode = self.isEnabled()
         if currMode != mode :
-            self.dev.write(f'TEC:MODE:{mode}')
-            #self.dev.query('*OPC?')
+            self.write(f'TEC:MODE:{mode}')
+            self.query('*OPC?')
             self.setEnabled(enabledMode)
             
     def getMode(self):
-        return self.dev.query('TEC:MODE?')
+        return self.query('TEC:MODE?')
+    
+    
+    
+    def getDriverConfig(self):
+        config = []
+        config.append({'element':'variable','name':'resistance','type':float,'read':self.getResistance,'help':'Resistance'})
+        config.append({'element':'variable','name':'gain','type':int,'read':self.getGain,'write':self.setGain,'help':'Gain'})
+        config.append({'element':'variable','name':'currentSetpoint','type':float,'unit':'mA','read':self.getCurrentSetpoint,'write':self.setCurrentSetpoint,'help':'Current setpoint'})
+        config.append({'element':'variable','name':'current','type':float,'unit':'mA','read':self.getCurrent,'help':'Current'})
+        config.append({'element':'variable','name':'temperatureSetpoint','type':float,'unit':'°C','read':self.getTemperatureSetpoint,'write':self.setTemperatureSetpoint,'help':'Temperature setpoint'})
+        config.append({'element':'variable','name':'temperature','type':float,'unit':'°C','read':self.getTemperature,'help':'Actual temperature'})
+        config.append({'element':'variable','name':'output','type':bool,'read':self.isEnabled,'write':self.setEnabled,'help':'Output state'})
+        config.append({'element':'variable','name':'mode','type':str,'read':self.getMode,'write':self.setMode,'help':'Control mode'})
+        return config
+    
+    
         
         
         
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys,os
+    
+    ADDRESS = 'GPIB0::26::INSTR'
     
     usage = """usage: %prog [options] arg
                
