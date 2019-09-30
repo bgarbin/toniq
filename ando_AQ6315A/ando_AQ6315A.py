@@ -35,15 +35,15 @@ class Device():
         self.lambd = linspace(startWL,stopWL,len(self.amp))
     
     def set_start_wavelength(self,value):
-        scope.write('STAWL '+value)
+        self.write('STAWL '+value)
     def set_stop_wavelength(self,value):
-        scope.write('STPWL '+value)
+        self.write('STPWL '+value)
         
     def singleSweep(self):
         s = self.write("SGL")
         return s
     def repeatSweep(self):
-        scope.write('RPT')
+        self.write('RPT')
     
     def query(self,query,length=1000000):
         self.write(query)
