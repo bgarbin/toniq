@@ -36,11 +36,11 @@ class Device():
     def __init__(self):
         pass
     def amplitude(self,amplitude):
-        self.write('VOLT '+amplitude)
+        self.write('VOLT '+str(amplitude))
     def offset(self,offset):
-        self.write('VOLT:OFFS '+offset)
+        self.write('VOLT:OFFS '+str(offset))
     def frequency(self,frequency):
-        self.write('FREQ '+frequency)
+        self.write('FREQ '+str(frequency))
     def ramp(self,ramp):
         l   = list(zeros(5000) - 1)
         lll = list(ones(5000))
@@ -52,6 +52,16 @@ class Device():
     def idn(self):
         self.inst.write('*IDN?')
         self.read()
+        
+    def getDriverConfig(self):
+        
+        config = []
+        
+        config.append({'element':'variable','name':'amplitude','write':self.amplitude,'type':float,'help':'Amplitude'})
+        config.append({'element':'variable','name':'offset','write':self.offset,'type':float,'help':'Offset'})
+        config.append({'element':'variable','name':'frequency','write':self.frequency,'type':float,'help':'Frequency'})
+        
+        return config
         
         
 if __name__ == '__main__':

@@ -127,7 +127,7 @@ class Device():
         
         config.append({'element':'action','name':'closeAll','do':self.setSafeState,'help':'Close every shutters'})
         config.append({'element':'action','name':'invert','do':self.invertConfig,'help':'Invert every shutters state'})
-        config.append({'element':'variable','name':'config','read':self.getConfig,'write':self.setConfig,'type':str,'help':'Invert every shutters state'})
+        config.append({'element':'variable','name':'config','read':self.getConfig,'write':self.setConfig,'type':str,'help':'Shutter configuration. 1 is closed, 0 is opened.'})
 
         return config
         
