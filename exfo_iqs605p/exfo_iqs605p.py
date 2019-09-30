@@ -27,7 +27,6 @@ class Device_TELNET():
         self.controller = Telnet(address,str(port))
         self.read()
         self.read()
-        self.write('*CLS')
         
         
     def write(self,command):
@@ -58,7 +57,7 @@ class Device_TELNET():
 class Device():
     
     def __init__(self, **kwargs):
-
+        self.write('*CLS')
         # Submodules
         # DEVICE_CONFIG.ini : slot<NUM> = <MODULE>,<NAME>
         self.slotnames = []

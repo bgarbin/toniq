@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Aug  7 13:42:52 2019
 
-@author: quentin.chateiller
+"""
+Supported instruments (identified):
+- Module ils100cc
 """
 
 import time 
