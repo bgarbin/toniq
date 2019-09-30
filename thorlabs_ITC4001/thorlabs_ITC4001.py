@@ -15,10 +15,10 @@ import sys
 class Device_VISA():
     def __init__(self, address):
         import visa
-        
-        Device.__init__(self)
+
         rm = visa.ResourceManager()
         self.inst = rm.get_instrument(address)
+        Device.__init__(self)
         
     def query(self, cmd):
         self.write(cmd)
@@ -41,7 +41,6 @@ class Device():
         self.write('SOUR:CURR %f\n' %amplitude)
         print('\nSetting current to: ',amplitude,'V\n')
             
-
     def getDriverConfig(self):
         config = []        
         config.append({'element':'variable','name':'amplitude','write':self.amplitude,'type':float,'help':"Set the pumping current value"})
