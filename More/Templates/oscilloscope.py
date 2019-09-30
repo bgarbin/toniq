@@ -106,7 +106,7 @@ class Device():
 
 class Channel():
     def __init__(self,dev,slot):
-        self.slot = slot
+        self.slot = int(slot)
         self.dev  = dev
         self.autoscale = False
     
